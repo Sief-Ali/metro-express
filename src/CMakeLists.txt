@@ -5,8 +5,8 @@
 set (MAIN_NAME "${PROJECT_NAME}main")
 
 #configure directories
-set (MAIN_MODULE_PATH "${PROJECT_SOURCE_DIR}")
-set (MAIN_SRC_PATH  "${MAIN_MODULE_PATH}/src" )
+set (MAIN_MODULE_PATH "${PROJECT_SOURCE_DIR}/src")
+set (MAIN_SRC_PATH  "${MAIN_MODULE_PATH}" )
 set (HAL_MODULE_PATH "${MAIN_SRC_PATH}/HAL")
 set (MCAL_MODULE_PATH "${MAIN_SRC_PATH}/MCAL")
 set (utils_MODULE_PATH "${MAIN_SRC_PATH}/utils")
@@ -25,6 +25,8 @@ target_link_libraries(${PROJECT_NAME}.elf
         avr_options
         gpio
         timer
+        btn
+        led
 )
 
 add_custom_command(
