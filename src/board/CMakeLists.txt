@@ -1,0 +1,17 @@
+add_library(board STATIC
+    board.c
+    include/board.h
+)
+
+target_include_directories(board
+    PUBLIC
+        include
+)
+
+target_link_libraries(board
+    PUBLIC
+        avr_options
+        utils
+        btn
+        led
+)

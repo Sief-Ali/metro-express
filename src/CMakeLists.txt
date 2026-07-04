@@ -10,12 +10,14 @@ set (MAIN_SRC_PATH  "${MAIN_MODULE_PATH}" )
 set (HAL_MODULE_PATH "${MAIN_SRC_PATH}/HAL")
 set (MCAL_MODULE_PATH "${MAIN_SRC_PATH}/MCAL")
 set (utils_MODULE_PATH "${MAIN_SRC_PATH}/utils")
+set (board_MODULE_PATH "${MAIN_SRC_PATH}/board")
 
 file (GLOB MAIN_SOURCE_FILE "${MAIN_SRC_PATH}/app/main.c")
 
 add_subdirectory("${HAL_MODULE_PATH}")
 add_subdirectory("${MCAL_MODULE_PATH}")
 add_subdirectory("${utils_MODULE_PATH}")
+add_subdirectory("${board_MODULE_PATH}")
 
 #set target executable
 add_executable (${PROJECT_NAME}.elf ${MAIN_SOURCE_FILE})
@@ -27,6 +29,7 @@ target_link_libraries(${PROJECT_NAME}.elf
         timer
         btn
         led
+        board
 )
 
 add_custom_command(
