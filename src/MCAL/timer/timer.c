@@ -1,7 +1,6 @@
 #include "timer.h"
-#include "timer_registers.h"
-#include "timer_private.h"
 
+#include <avr/io.h>
 #include "bit_utils.h"
 
 static uint8_t TIMER_PrescalerToCS(timer_id_t timer, timer_prescaler_t prescaler)
@@ -56,68 +55,71 @@ static uint8_t TIMER_PrescalerToCS(timer_id_t timer, timer_prescaler_t prescaler
 
 static void TIMER_ClearFlag(uint8_t flag)
 {
-    TIMER_TIFR = (uint8_t)(1U << flag);
+    uint8_t flag_mask = 0U;
+
+    SET_BIT(flag_mask, flag);
+    TIFR = flag_mask;
 }
 
 static void TIMER_Delay0(uint8_t compare_value, timer_prescaler_t prescaler)
 {
-    TIMER_TCCR0 = 0U;
-    TIMER_TCNT0 = 0U;
-    TIMER_OCR0 = compare_value;
+    TCCR0 = 0U;
+    TCNT0 = 0U;
+    OCR0 = compare_value;
 
-    SET_BIT(TIMER_TCCR0, TIMER_WGM01);
+    SET_BIT(TCCR0, WGM01);
 
-    TIMER_ClearFlag(TIMER_OCF0);
-    TIMER_TCCR0 |= TIMER_PrescalerToCS(TIMER_0, prescaler);
+    TIMER_ClearFlag(OCF0);
+    TCCR0 |= TIMER_PrescalerToCS(TIMER_0, prescaler);
 
-    while (READ_BIT(TIMER_TIFR, TIMER_OCF0) == 0U)
+    while (READ_BIT(TIFR, OCF0) == 0U)
     {
     }
 
-    TIMER_ClearFlag(TIMER_OCF0);
+    TIMER_ClearFlag(OCF0);
 
-    TIMER_TCCR0 = 0U;
+    TCCR0 = 0U;
 }
 
 static void TIMER_Delay1(uint16_t compare_value, timer_prescaler_t prescaler)
 {
-    TIMER_TCCR1A = 0U;
-    TIMER_TCCR1B = 0U;
-    TIMER_TCNT1 = 0U;
-    TIMER_OCR1A = compare_value;
+    TCCR1A = 0U;
+    TCCR1B = 0U;
+    TCNT1 = 0U;
+    OCR1A = compare_value;
 
-    SET_BIT(TIMER_TCCR1B, TIMER_WGM12);
+    SET_BIT(TCCR1B, WGM12);
 
-    TIMER_ClearFlag(TIMER_OCF1A);
-    TIMER_TCCR1B |= TIMER_PrescalerToCS(TIMER_1, prescaler);
+    TIMER_ClearFlag(OCF1A);
+    TCCR1B |= TIMER_PrescalerToCS(TIMER_1, prescaler);
 
-    while (READ_BIT(TIMER_TIFR, TIMER_OCF1A) == 0U)
+    while (READ_BIT(TIFR, OCF1A) == 0U)
     {
     }
 
-    TIMER_ClearFlag(TIMER_OCF1A);
+    TIMER_ClearFlag(OCF1A);
 
-    TIMER_TCCR1B = 0U;
+    TCCR1B = 0U;
 }
 
 static void TIMER_Delay2(uint8_t compare_value, timer_prescaler_t prescaler)
 {
-    TIMER_TCCR2 = 0U;
-    TIMER_TCNT2 = 0U;
-    TIMER_OCR2 = compare_value;
+    TCCR2 = 0U;
+    TCNT2 = 0U;
+    OCR2 = compare_value;
 
-    SET_BIT(TIMER_TCCR2, TIMER_WGM21);
+    SET_BIT(TCCR2, WGM21);
 
-    TIMER_ClearFlag(TIMER_OCF2);
-    TIMER_TCCR2 |= TIMER_PrescalerToCS(TIMER_2, prescaler);
+    TIMER_ClearFlag(OCF2);
+    TCCR2 |= TIMER_PrescalerToCS(TIMER_2, prescaler);
 
-    while (READ_BIT(TIMER_TIFR, TIMER_OCF2) == 0U)
+    while (READ_BIT(TIFR, OCF2) == 0U)
     {
     }
 
-    TIMER_ClearFlag(TIMER_OCF2);
+    TIMER_ClearFlag(OCF2);
 
-    TIMER_TCCR2 = 0U;
+    TCCR2 = 0U;
 }
 
 void TIMER_Delay(
