@@ -1,125 +1,111 @@
 #include "timer.h"
 
-#include <avr/io.h>
+#include <stddef.h>
+
 #include "bit_utils.h"
+#include "timer_registers.h"
 
-static uint8_t TIMER_PrescalerToCS(timer_id_t timer, timer_prescaler_t prescaler)
+static uint8_t TIMER_RegisterIsValid(const timer_register_t *reg)
 {
-    if (timer == TIMER_2)
+    return ((reg != NULL) &&
+            (reg->address != NULL) &&
+            (reg->width != TIMER_REGISTER_UNUSED));
+}
+
+static uint8_t TIMER_Read8(const timer_register_t *reg)
+{
+    if (TIMER_RegisterIsValid(reg) == 0U)
     {
-        switch (prescaler)
-        {
-            case TIMER_PRESCALER_1:
-                return 1U;
-
-            case TIMER_PRESCALER_8:
-                return 2U;
-
-            case TIMER_PRESCALER_64:
-                return 4U;
-
-            case TIMER_PRESCALER_256:
-                return 6U;
-
-            case TIMER_PRESCALER_1024:
-                return 7U;
-
-            case TIMER_STOP:
-            default:
-                return 0U;
-        }
+        return 0U;
     }
 
-    switch (prescaler)
+    return *(volatile uint8_t *)reg->address;
+}
+
+static void TIMER_Write(const timer_register_t *reg, uint16_t value)
+{
+    if (TIMER_RegisterIsValid(reg) == 0U)
     {
-        case TIMER_PRESCALER_1:
-            return 1U;
+        return;
+    }
 
-        case TIMER_PRESCALER_8:
-            return 2U;
-
-        case TIMER_PRESCALER_64:
-            return 3U;
-
-        case TIMER_PRESCALER_256:
-            return 4U;
-
-        case TIMER_PRESCALER_1024:
-            return 5U;
-
-        case TIMER_STOP:
-        default:
-            return 0U;
+    if (reg->width == TIMER_REGISTER_16_BIT)
+    {
+        *(volatile uint16_t *)reg->address = value;
+    }
+    else
+    {
+        *(volatile uint8_t *)reg->address = (uint8_t)value;
     }
 }
 
-static void TIMER_ClearFlag(uint8_t flag)
+static void TIMER_Update8(const timer_register_t *reg, uint8_t mask, uint8_t value)
+{
+    uint8_t current_value = TIMER_Read8(reg);
+
+    current_value &= (uint8_t)~mask;
+    current_value |= (uint8_t)(value & mask);
+
+    TIMER_Write(reg, current_value);
+}
+
+static void TIMER_ResetControls(const timer_descriptor_t *descriptor)
+{
+    uint8_t index;
+
+    for (index = 0U; index < TIMER_CONTROL_REGISTERS; index++)
+    {
+        TIMER_Write(&descriptor->control[index], 0U);
+    }
+}
+
+static void TIMER_ConfigureCtcMode(const timer_descriptor_t *descriptor)
+{
+    uint8_t index;
+
+    for (index = 0U; index < TIMER_CONTROL_REGISTERS; index++)
+    {
+        TIMER_Update8(&descriptor->control[index],
+                      descriptor->waveform_mask[index],
+                      descriptor->ctc_value[index]);
+    }
+}
+
+static void TIMER_SetClock(
+    const timer_descriptor_t *descriptor,
+    timer_prescaler_t prescaler
+)
+{
+    uint8_t clock_value = descriptor->clock_bits[prescaler];
+
+    TIMER_Update8(&descriptor->control[descriptor->clock_control_index],
+                  descriptor->clock_mask,
+                  (uint8_t)(clock_value << descriptor->clock_shift));
+}
+
+static void TIMER_ClearFlag(const timer_descriptor_t *descriptor, uint8_t flag_bit)
 {
     uint8_t flag_mask = 0U;
 
-    SET_BIT(flag_mask, flag);
-    TIFR = flag_mask;
-}
-
-static void TIMER_Delay0(uint8_t compare_value, timer_prescaler_t prescaler)
-{
-    TCCR0 = 0U;
-    TCNT0 = 0U;
-    OCR0 = compare_value;
-
-    SET_BIT(TCCR0, WGM01);
-
-    TIMER_ClearFlag(OCF0);
-    TCCR0 |= TIMER_PrescalerToCS(TIMER_0, prescaler);
-
-    while (READ_BIT(TIFR, OCF0) == 0U)
+    if (flag_bit == TIMER_BIT_UNUSED)
     {
+        return;
     }
 
-    TIMER_ClearFlag(OCF0);
-
-    TCCR0 = 0U;
+    SET_BIT(flag_mask, flag_bit);
+    TIMER_Write(&descriptor->interrupt_flags, flag_mask);
 }
 
-static void TIMER_Delay1(uint16_t compare_value, timer_prescaler_t prescaler)
+static void TIMER_WaitForFlag(const timer_descriptor_t *descriptor, uint8_t flag_bit)
 {
-    TCCR1A = 0U;
-    TCCR1B = 0U;
-    TCNT1 = 0U;
-    OCR1A = compare_value;
-
-    SET_BIT(TCCR1B, WGM12);
-
-    TIMER_ClearFlag(OCF1A);
-    TCCR1B |= TIMER_PrescalerToCS(TIMER_1, prescaler);
-
-    while (READ_BIT(TIFR, OCF1A) == 0U)
+    if (flag_bit == TIMER_BIT_UNUSED)
     {
+        return;
     }
 
-    TIMER_ClearFlag(OCF1A);
-
-    TCCR1B = 0U;
-}
-
-static void TIMER_Delay2(uint8_t compare_value, timer_prescaler_t prescaler)
-{
-    TCCR2 = 0U;
-    TCNT2 = 0U;
-    OCR2 = compare_value;
-
-    SET_BIT(TCCR2, WGM21);
-
-    TIMER_ClearFlag(OCF2);
-    TCCR2 |= TIMER_PrescalerToCS(TIMER_2, prescaler);
-
-    while (READ_BIT(TIFR, OCF2) == 0U)
+    while (READ_BIT(TIMER_Read8(&descriptor->interrupt_flags), flag_bit) == 0U)
     {
     }
-
-    TIMER_ClearFlag(OCF2);
-
-    TCCR2 = 0U;
 }
 
 void TIMER_Delay(
@@ -128,26 +114,29 @@ void TIMER_Delay(
     timer_prescaler_t prescaler
 )
 {
-    if (prescaler == TIMER_STOP)
+    const timer_descriptor_t *descriptor = TIMER_RegistersGet(timer);
+    uint8_t compare_flag;
+
+    if ((descriptor == NULL) ||
+        (prescaler == TIMER_STOP) ||
+        (prescaler >= TIMER_PRESCALER_COUNT) ||
+        (compare_value > descriptor->max_count))
     {
         return;
     }
 
-    switch (timer)
-    {
-        case TIMER_0:
-            TIMER_Delay0((uint8_t)compare_value, prescaler);
-            break;
+    compare_flag = descriptor->compare_flag_bit[TIMER_COMPARE_A];
 
-        case TIMER_1:
-            TIMER_Delay1(compare_value, prescaler);
-            break;
+    TIMER_ResetControls(descriptor);
+    TIMER_Write(&descriptor->counter, 0U);
+    TIMER_Write(&descriptor->compare[TIMER_COMPARE_A], compare_value);
 
-        case TIMER_2:
-            TIMER_Delay2((uint8_t)compare_value, prescaler);
-            break;
+    TIMER_ConfigureCtcMode(descriptor);
+    TIMER_ClearFlag(descriptor, compare_flag);
+    TIMER_SetClock(descriptor, prescaler);
 
-        default:
-            break;
-    }
+    TIMER_WaitForFlag(descriptor, compare_flag);
+
+    TIMER_ClearFlag(descriptor, compare_flag);
+    TIMER_ResetControls(descriptor);
 }
