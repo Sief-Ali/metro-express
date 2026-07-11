@@ -2,8 +2,7 @@
 #define TIMER_REGISTERS_H
 
 #include <stdint.h>
-
-#include "timer.h"
+#include "timer_types.h"
 
 #define TIMER_COMPARE_CHANNELS 2U
 #define TIMER_CONTROL_REGISTERS 2U
@@ -36,6 +35,14 @@ typedef struct
     volatile void *address;
     timer_register_width_t width;
 } timer_register_t;
+
+uint8_t TIMER_RegisterIsValid(const timer_register_t *reg);
+
+uint8_t TIMER_Read8(const timer_register_t *reg);
+
+void TIMER_Write(const timer_register_t *reg, uint16_t value);
+
+void TIMER_Update8(const timer_register_t *reg, uint8_t mask, uint8_t value);
 
 typedef struct
 {

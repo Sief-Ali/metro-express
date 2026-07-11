@@ -26,7 +26,7 @@ target_link_libraries(${PROJECT_NAME}.elf
     PRIVATE
         avr_options
         gpio
-        timer
+        timelib
         btn
         led
         board

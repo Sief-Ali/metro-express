@@ -2,30 +2,20 @@
 #define TIMER_DRIVER_H
 
 #include <stdint.h>
+#include "timer_types.h"
+#include "timer_registers.h"
 
-typedef enum
-{
-    TIMER_0,
-    TIMER_1,
-    TIMER_2,
-    TIMER_COUNT
-} timer_id_t;
+void TIMER_ResetControls(const timer_descriptor_t *descriptor);
 
-typedef enum
-{
-    TIMER_STOP = 0,
-    TIMER_PRESCALER_1,
-    TIMER_PRESCALER_8,
-    TIMER_PRESCALER_64,
-    TIMER_PRESCALER_256,
-    TIMER_PRESCALER_1024,
-    TIMER_PRESCALER_COUNT
-} timer_prescaler_t;
+void TIMER_ConfigureCtcMode(const timer_descriptor_t *descriptor);
 
-void TIMER_Delay(
-  timer_id_t timer,
-  uint16_t compare_value,
+void TIMER_SetClock(
+  const timer_descriptor_t *descriptor,
   timer_prescaler_t prescaler
 );
+
+void TIMER_ClearFlag(const timer_descriptor_t *descriptor, uint8_t flag_bit);
+
+void TIMER_WaitForFlag(const timer_descriptor_t *descriptor, uint8_t flag_bit);
 
 #endif

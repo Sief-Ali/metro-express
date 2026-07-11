@@ -1,4 +1,9 @@
 #include <util/delay.h>
+#include <avr/io.h>
+
+// drivers
+#include "timelib.h"
+#include "timer_types.h"
 
 //components
 #include "btn.h"
@@ -13,8 +18,8 @@ int main(void) {
 
   while (1U) {
     if (BTN_GetState(&btn1) == BTN_PRESSED) {
-      LED_Blink(&led1, BLINK_DELAY);
+      LED_Blink(&led1, DELAY_MS);
     } 
-    _delay_ms(DELAY_MS);
+    TIMER_Delay(TIMER_0, DELAY_MS, TIMER_PRESCALER_1024);
   }
 }
