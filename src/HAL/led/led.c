@@ -1,6 +1,6 @@
 #include "led.h"
 
-#include <timelib.h>
+#include <timer_service.h>
 
 
 void LED_Init(led_t *led)
@@ -26,6 +26,8 @@ void LED_Toggle(led_t *led)
 void LED_Blink(led_t *led, uint16_t blink_delay)
 {
   LED_On(led);
-  TIMER_Delay(TIMER_0, blink_delay, TIMER_PRESCALER_1024);
+  for (int x=0; x < 5; x++) {
+    TIMER_SERVICE_DelayMs(TIMER_1, blink_delay);
+  }
   LED_Off(led);
 }

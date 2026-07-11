@@ -12,5 +12,5 @@ target_link_libraries(led
     PUBLIC
         avr_options
         gpio
-        timelib
+        timer_service
 )

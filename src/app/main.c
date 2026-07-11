@@ -2,7 +2,7 @@
 #include <avr/io.h>
 
 // drivers
-#include "timelib.h"
+#include "timer_service.h"
 #include "timer_types.h"
 
 //components
@@ -20,6 +20,6 @@ int main(void) {
     if (BTN_GetState(&btn1) == BTN_PRESSED) {
       LED_Blink(&led1, DELAY_MS);
     } 
-    TIMER_Delay(TIMER_0, DELAY_MS, TIMER_PRESCALER_1024);
+    TIMER_SERVICE_DelayMs(TIMER_1, DELAY_MS);
   }
 }
