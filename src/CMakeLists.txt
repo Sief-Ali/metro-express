@@ -30,6 +30,7 @@ target_link_libraries(${PROJECT_NAME}.elf
         pwm_driver
         ext_int
         analog
+        serial
         adc
         btn
         led
