@@ -101,7 +101,7 @@ static const timer_callback_t timer_service_trampolines[TIMER_COUNT] =
     TIMER_SERVICE_Dispatch2
 };
 
-static void TIMER_SERVICE_Arm(
+static uint8_t TIMER_SERVICE_Arm(
     timer_id_t timer,
     uint16_t milliseconds,
     timer_callback_t callback,
@@ -114,12 +114,12 @@ static void TIMER_SERVICE_Arm(
         (callback == NULL) ||
         (milliseconds == 0U))
     {
-        return;
+        return 0U;
     }
 
     if (TIMER_SERVICE_ComputeTicks(timer, milliseconds, &clock, &compare) == 0U)
     {
-        return;
+        return 0U;
     }
 
     timer_service_slots[timer].callback = callback;
@@ -133,13 +133,15 @@ static void TIMER_SERVICE_Arm(
     TIMER_RegisterCallback(timer, TIMER_INTERRUPT_COMPARE_A, timer_service_trampolines[timer]);
     TIMER_EnableInterrupt(timer, TIMER_INTERRUPT_COMPARE_A);
     TIMER_SetClock(timer, clock);
+
+    return 1U;
 }
 
 /* -------------------------------------------------------------------------- */
 /* Public API                                                                  */
 /* -------------------------------------------------------------------------- */
 
-void TIMER_SERVICE_DelayMs(
+uint8_t TIMER_SERVICE_DelayMs(
     timer_id_t timer,
     uint16_t milliseconds)
 {
@@ -149,14 +151,14 @@ void TIMER_SERVICE_DelayMs(
 
     if ((timer >= TIMER_COUNT) || (milliseconds == 0U))
     {
-        return;
+        return 0U;
     }
 
     /* One fixed 1ms tick, repeated `milliseconds` times by polling - this
      * keeps the math simple and works the same on 8-bit and 16-bit timers. */
     if (TIMER_SERVICE_ComputeTicks(timer, 1U, &clock, &compare) == 0U)
     {
-        return;
+        return 0U;
     }
 
     TIMER_Stop(timer);
@@ -178,22 +180,24 @@ void TIMER_SERVICE_DelayMs(
     }
 
     TIMER_Stop(timer);
+
+    return 1U;
 }
 
-void TIMER_SERVICE_SetTimeout(
+uint8_t TIMER_SERVICE_SetTimeout(
     timer_id_t timer,
     uint16_t milliseconds,
     timer_callback_t callback)
 {
-    TIMER_SERVICE_Arm(timer, milliseconds, callback, 1U);
+    return TIMER_SERVICE_Arm(timer, milliseconds, callback, 1U);
 }
 
-void TIMER_SERVICE_SetInterval(
+uint8_t TIMER_SERVICE_SetInterval(
     timer_id_t timer,
     uint16_t milliseconds,
     timer_callback_t callback)
 {
-    TIMER_SERVICE_Arm(timer, milliseconds, callback, 0U);
+    return TIMER_SERVICE_Arm(timer, milliseconds, callback, 0U);
 }
 
 void TIMER_SERVICE_Cancel(timer_id_t timer)
