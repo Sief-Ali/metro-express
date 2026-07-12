@@ -1,18 +1,16 @@
-#include "serial.h"
+#include "logger.h"
+#include <util/delay.h>
 
 int  main(void) {
 
-  Serial_Init(9600);
+  Logger_Init();
 
-  Serial_Write("Metro Express\r\n");
+  Logger_Log(
+    LOG_INFO,
+    "[0x00]:SYS_INIT_OK");
   
   while (1)
   {
-      uint8_t c;
-  
-      if (Serial_Read(&c))
-      {
-          Serial_WriteByte(c);
-      }
+    _delay_ms(1000);
   }
 }

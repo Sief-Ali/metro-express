@@ -10,9 +10,9 @@ static const char *log_level_prefix[] =
     [LOG_ERROR]   = "[E]"
 };
 
-void Logger_Init(uint32_t baud_rate)
+void Logger_Init(void)
 {
-    Serial_Init(baud_rate);
+    Serial_Init(9600);
 }
 
 /* 
