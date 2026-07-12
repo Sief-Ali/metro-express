@@ -91,19 +91,18 @@ int main(void)
     int8_t step = 5;
     uint8_t fade_running = 1U;
 
-    ext_int_config_t btn3_int_cfg =
-    {
-        .line = EXT_INT_0,
-        .trigger = EXT_INT_TRIGGER_FALLING_EDGE /* active-low: press = falling edge */
-    };
-
     BOARD_Init();
 
     BTN_Init(&btn1);
     BTN_Init(&btn2);
     /* BTN_Init(&btn3) still runs - it configures PD2's direction/pull-up
      * via gpio.h, which ext_int deliberately never touches itself. */
-    BTN_Init(&btn3);
+     BTN_Init(&btn3);
+
+     BTN_InitInterrupt(
+         &btn3,
+         EXT_INT_TRIGGER_FALLING_EDGE,
+         OnBtn3Edge); 
 
     LED_Init(&led1);
     LED_Init(&led_red);
@@ -126,11 +125,6 @@ int main(void)
             LED_Toggle(&led_red);
         }
     }
-
-    EXT_INT_Init(&btn3_int_cfg);
-    EXT_INT_RegisterCallback(EXT_INT_0, OnBtn3Edge);
-    EXT_INT_ClearFlag(EXT_INT_0);
-    EXT_INT_Enable(EXT_INT_0);
 
     EXT_INT_GlobalEnable(); /* required for both TIMER_0's ISR and INT0's ISR to fire */
 

@@ -12,4 +12,5 @@ target_link_libraries(btn
     PUBLIC
         avr_options
         gpio
+        ext_int
 )
