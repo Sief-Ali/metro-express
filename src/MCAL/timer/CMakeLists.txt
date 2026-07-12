@@ -1,8 +1,8 @@
 add_library(timer STATIC
     timer.c
+    timer_registers.c
     include/timer.h
-    timer_registers.h
-    timer_private.h
+    include/timer_registers.h
 )
 
 target_include_directories(timer
