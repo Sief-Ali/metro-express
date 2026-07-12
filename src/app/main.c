@@ -1,11 +1,11 @@
 #include <avr/io.h>
-#include <avr/interrupt.h>
 #include <stdint.h>
 
 // drivers
 #include "timer_service.h"
 #include "pwm_driver.h"
 #include "timer_types.h"
+#include "ext_int.h"
 
 // components
 #include "btn.h"
@@ -25,51 +25,84 @@
  *   TIMER_1 -> PWM cross-fade (its pins are hard-wired to OC1A/OC1B)
  *   TIMER_0 -> heartbeat tick, drives led_green
  *   TIMER_2 -> main loop pacing (TIMER_SERVICE_DelayMs)
+ *
+ * btn3 (PD2) is the only button that can use a real hardware interrupt on
+ * this chip - INT0 is fixed to PD2 by the ATmega32's silicon. INT1 (PD3)
+ * is already led1's pin, and INT2 (PB2) isn't wired to anything in this
+ * schematic, so btn1/btn2 stay on polling (BTN_GetState) as before.
+ *
+ * KNOWN ISSUE (workaround below): LED_Toggle appears to reconfigure TIMER_1
+ * internally (most likely a delay routine hardcoded to TIMER_1, left over
+ * from before PWM existed in this project). That knocks TIMER_1 out of
+ * Fast PWM mode and stops it. Until led.c is fixed to leave TIMER_1 alone,
+ * PWM is re-armed after every button-1 press as a workaround.
  */
 
-/* TIMER_0 is 8-bit: at 16MHz its longest possible period (even at the
- * slowest prescaler) is ~16ms - nowhere near 1 second. So the hardware
- * fires every HEARTBEAT_TICK_MS, and this many ticks are counted in
- * software before the LED actually toggles. This is the standard way to
- * get a long software timer out of a short hardware one. */
 #define HEARTBEAT_TICK_MS   10U
 #define HEARTBEAT_TICKS     100U /* 100 * 10ms ~= 1s */
 
 static volatile uint16_t heartbeat_ticks = 0U;
+static volatile uint8_t red_led_toggle_flag = 0U;
 
 static void OnHeartbeatTick(void)
 {
     heartbeat_ticks++;
 }
 
+/* Runs inside ext_int's ISR (INT0_vect, via EXT_INT_RegisterCallback).
+ * Keep it tiny - just flag the edge, do the real work in the main loop. */
+static void OnBtn3Edge(void)
+{
+    red_led_toggle_flag = 1U;
+}
+
+static pwm_config_t pwm_a =
+{
+    .timer = TIMER_1,
+    .channel = TIMER_COMPARE_A,
+    .mode = PWM_MODE_FAST,
+    .frequency_hz = 1000UL
+};
+
+/* Both channels share Timer1's prescaler/top, so they must use the same
+ * frequency - that's a hardware constraint, not a driver one. */
+static pwm_config_t pwm_b =
+{
+    .timer = TIMER_1,
+    .channel = TIMER_COMPARE_B,
+    .mode = PWM_MODE_FAST,
+    .frequency_hz = 1000UL
+};
+
+/* WORKAROUND: re-applies Timer1's PWM mode/clock and restores the fade's
+ * current duty cycle. Call this after anything that might have
+ * reconfigured TIMER_1 out from under the PWM (currently: LED_Toggle). */
+static void RestorePwm(int8_t duty)
+{
+    PWM_Init(&pwm_a);
+    PWM_Init(&pwm_b);
+    PWM_SetDutyCycle(TIMER_1, TIMER_COMPARE_A, (uint8_t)duty);
+    PWM_SetDutyCycle(TIMER_1, TIMER_COMPARE_B, (uint8_t)(100 - duty));
+}
+
 int main(void)
 {
-    pwm_config_t pwm_a =
-    {
-        .timer = TIMER_1,
-        .channel = TIMER_COMPARE_A,
-        .mode = PWM_MODE_FAST,
-        .frequency_hz = 1000UL
-    };
-
-    /* Both channels share Timer1's prescaler/top, so they must use the
-     * same frequency - that's a hardware constraint, not a driver one. */
-    pwm_config_t pwm_b =
-    {
-        .timer = TIMER_1,
-        .channel = TIMER_COMPARE_B,
-        .mode = PWM_MODE_FAST,
-        .frequency_hz = 1000UL
-    };
-
     int8_t duty = 0;
     int8_t step = 5;
     uint8_t fade_running = 1U;
+
+    ext_int_config_t btn3_int_cfg =
+    {
+        .line = EXT_INT_0,
+        .trigger = EXT_INT_TRIGGER_FALLING_EDGE /* active-low: press = falling edge */
+    };
 
     BOARD_Init();
 
     BTN_Init(&btn1);
     BTN_Init(&btn2);
+    /* BTN_Init(&btn3) still runs - it configures PD2's direction/pull-up
+     * via gpio.h, which ext_int deliberately never touches itself. */
     BTN_Init(&btn3);
 
     LED_Init(&led1);
@@ -81,8 +114,7 @@ int main(void)
     GPIO_InitPin(LED_PWM_A_PIN);
     GPIO_InitPin(LED_PWM_B_PIN);
 
-    PWM_Init(&pwm_a);
-    PWM_Init(&pwm_b);
+    RestorePwm(duty);
 
     if (TIMER_SERVICE_SetInterval(TIMER_0, HEARTBEAT_TICK_MS, OnHeartbeatTick) == 0U)
     {
@@ -95,27 +127,35 @@ int main(void)
         }
     }
 
-    sei(); /* global interrupt enable - required for SetInterval to fire */
+    EXT_INT_Init(&btn3_int_cfg);
+    EXT_INT_RegisterCallback(EXT_INT_0, OnBtn3Edge);
+    EXT_INT_ClearFlag(EXT_INT_0);
+    EXT_INT_Enable(EXT_INT_0);
+
+    EXT_INT_GlobalEnable(); /* required for both TIMER_0's ISR and INT0's ISR to fire */
 
     while (1U)
     {
-        /* Button 1: blocking blink on the plain digital LED */
+        /* Button 1: blocking blink on the plain digital LED.
+         * WORKAROUND: LED_Toggle appears to disturb TIMER_1, so PWM is
+         * re-armed immediately afterward - see RestorePwm's comment. */
         if (BTN_GetState(&btn1) == BTN_PRESSED)
         {
             LED_Toggle(&led1);
+            RestorePwm(duty);
         }
 
         /* Button 2: hold to pause the PWM cross-fade */
         fade_running = (BTN_GetState(&btn2) == BTN_PRESSED) ? 0U : 1U;
 
-        /* Button 3: direct on/off control of the red status LED */
-        if (BTN_GetState(&btn3) == BTN_PRESSED)
+        /* Button 3: now interrupt-driven (INT0) instead of polled. This
+         * naturally becomes toggle-on-press rather than the old
+         * on-while-held behavior - that's the idiomatic way to react to
+         * an edge rather than a level. */
+        if (red_led_toggle_flag != 0U)
         {
-            LED_On(&led_red);
-        }
-        else
-        {
-            LED_Off(&led_red);
+            red_led_toggle_flag = 0U;
+            LED_Toggle(&led_red);
         }
 
         if (fade_running != 0U)
