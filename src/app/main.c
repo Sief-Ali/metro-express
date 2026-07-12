@@ -6,12 +6,14 @@
 #include "pwm_driver.h"
 #include "timer_types.h"
 #include "ext_int.h"
+#include "adc_types.h"
 
 // components
 #include "btn.h"
 #include "led.h"
 #include "board.h"
 #include "gpio.h"
+#include "analog.h"
 
 /* Matches the SimulIDE schematic (main-v1.sim1):
  *   PD0/PD1/PD2  -> btn1/btn2/btn3   (active-low, internal pull-ups)
@@ -38,10 +40,11 @@
  * PWM is re-armed after every button-1 press as a workaround.
  */
 
-#define HEARTBEAT_TICK_MS   10U
+#define HEARTBEAT_TICK_MS 10U
 #define HEARTBEAT_TICKS     100U /* 100 * 10ms ~= 1s */
 
 static volatile uint16_t heartbeat_ticks = 0U;
+static uint16_t heartbeat_target = 100U;
 static volatile uint8_t red_led_toggle_flag = 0U;
 
 static void OnHeartbeatTick(void)
@@ -74,6 +77,27 @@ static pwm_config_t pwm_b =
     .frequency_hz = 1000UL
 };
 
+static const adc_config_t adc_config =
+{
+    .reference = ADC_REFERENCE_AVCC,
+
+    .alignment = ADC_ALIGNMENT_RIGHT,
+
+    .prescaler = ADC_PRESCALER_128,
+
+    .input =
+    {
+        .mode = ADC_INPUT_SINGLE_ENDED,
+        .positive = ADC_CHANNEL_2
+    },
+
+    .auto_trigger = ADC_AUTO_TRIGGER_DISABLE,
+
+    .interrupt = ADC_INTERRUPT_DISABLE,
+
+    .trigger = ADC_TRIGGER_FREE_RUNNING
+};
+
 /* WORKAROUND: re-applies Timer1's PWM mode/clock and restores the fade's
  * current duty cycle. Call this after anything that might have
  * reconfigured TIMER_1 out from under the PWM (currently: LED_Toggle). */
@@ -92,6 +116,7 @@ int main(void)
     uint8_t fade_running = 1U;
 
     BOARD_Init();
+    Analog_Init(&adc_config);
 
     BTN_Init(&btn1);
     BTN_Init(&btn2);
@@ -165,7 +190,13 @@ int main(void)
             PWM_SetDutyCycle(TIMER_1, TIMER_COMPARE_B, (uint8_t)(100 - duty));
         }
 
-        if (heartbeat_ticks >= HEARTBEAT_TICKS)
+        uint16_t adc_value;
+        adc_value = Analog_Read();
+        /* 0..1023 -> 5..200 ticks */
+        heartbeat_target =
+            5U + (((uint32_t)adc_value * 195U) / 1023U);
+
+        if (heartbeat_ticks >= heartbeat_target)
         {
             heartbeat_ticks = 0U;
             LED_Toggle(&led_green);
