@@ -28,6 +28,7 @@ target_link_libraries(${PROJECT_NAME}.elf
         gpio
         timer_service
         pwm_driver
+        analog
         btn
         led
         board
