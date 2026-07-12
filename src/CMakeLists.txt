@@ -29,6 +29,8 @@ target_link_libraries(${PROJECT_NAME}.elf
         timer_service
         pwm_driver
         ext_int
+        analog
+        adc-driver
         btn
         led
         board
