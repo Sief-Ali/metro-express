@@ -78,8 +78,6 @@
 
 <item itemtype="Connector" uid="Connector-173" startpinid="Push-69-switch0pinN" endpinid="mega32-6-PORTD3" pointList="52,132,60,132,60,108,92,108" />
 
-<item itemtype="Connector" uid="Connector-174" startpinid="mega32-6-PORTD4" endpinid="Push-70-switch0pinN" pointList="92,116,68,116,68,164,52,164" />
-
 <item itemtype="Connector" uid="Connector-176" startpinid="Resistor-71-rPin" endpinid="Led-72-lPin" pointList="228,68,236,68" />
 
 <item itemtype="Connector" uid="Connector-177" startpinid="Resistor-73-rPin" endpinid="Led-74-lPin" pointList="228,92,236,92" />
@@ -137,5 +135,7 @@
 <item itemtype="Connector" uid="Connector-215" startpinid="Node-84-2" endpinid="Node-91-0" pointList="284,140,284,188" />
 
 <item itemtype="Connector" uid="Connector-216" startpinid="Node-91-2" endpinid="Node-90-0" pointList="284,188,284,196" />
+
+<item itemtype="Connector" uid="Connector-217" startpinid="Push-70-switch0pinN" endpinid="mega32-6-PORTB2" pointList="52,164,84,164,84,-4,92,-4" />
 
 </circuit>
