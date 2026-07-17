@@ -32,7 +32,7 @@ board_leds_t led = {
     }
 };
 
-adc_config_t pot_adc =
+adc_config_t pot_adc_config =
 {
     .reference = ADC_REFERENCE_AREF,
 

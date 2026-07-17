@@ -32,7 +32,7 @@ int main(void) {
     BTN_Init(board_btn_list[index]);
   }
   
-  Analog_Init(&pot_adc);
+  Analog_Init(&pot_adc_config);
 
   Logger_Init();
 

@@ -38,6 +38,6 @@ typedef struct
 
 extern board_buttons_t btn;
 
-extern adc_config_t pot_adc;
+extern adc_config_t pot_adc_config;
 
 #endif
