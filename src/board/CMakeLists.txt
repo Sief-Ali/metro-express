@@ -14,4 +14,6 @@ target_link_libraries(board
         utils
         btn
         led
+        adc
+        analog
 )

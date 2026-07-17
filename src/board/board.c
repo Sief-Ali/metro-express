@@ -1,25 +1,54 @@
 #include "board.h"
 
-led_t led1;
-led_t led_red;
-led_t led_green;
+board_buttons_t btn = {
+    .next = {
+        .pin = BTN_NEXT,
+        .pullup = PULLUP_STATE_ON
+    },
 
-btn_t btn1;
-btn_t btn2;
-btn_t btn3;
+    .confirm = {
+        .pin = BTN_CONFIRM,
+        .pullup = PULLUP_STATE_ON
+    },
 
-void BOARD_Init(void)
+    .cancel = {
+        .pin = BTN_CANCEL,
+        .pullup = PULLUP_STATE_ON
+    }
+};
+
+board_leds_t led = {
+    .ready = {
+        .pin = LED_READY,
+    },
+    .processing = {
+      .pin = LED_PROCESSING,
+    },
+    .ticket = {
+      .pin = LED_TICKET,
+    },
+    .error = {
+      .pin = LED_ERROR,
+    }
+};
+
+adc_config_t pot_adc =
 {
-    led1.pin      = LED_PIN;
-    led_red.pin   = LED_RED_PIN;
-    led_green.pin = LED_GREEN_PIN;
+    .reference = ADC_REFERENCE_AREF,
 
-    btn1.pin    = BTN_PIN;
-    btn1.pullup = PULLUP_STATE_ON;
+    .alignment = ADC_ALIGNMENT_RIGHT,
 
-    btn2.pin    = BTN2_PIN;
-    btn2.pullup = PULLUP_STATE_ON;
+    .prescaler = ADC_PRESCALER_128,
 
-    btn3.pin    = BTN3_PIN;
-    btn3.pullup = PULLUP_STATE_ON;
-}
+    .input =
+    {
+        .mode = ADC_INPUT_SINGLE_ENDED,
+        .positive = ADC_CHANNEL_0
+    },
+
+    .auto_trigger = ADC_AUTO_TRIGGER_DISABLE,
+
+    .interrupt = ADC_INTERRUPT_DISABLE,
+
+    .trigger = ADC_TRIGGER_FREE_RUNNING
+};
