@@ -1,6 +1,7 @@
 #include <util/delay.h>
 
 #include "analog.h"
+#include "app.h"
 #include "btn.h"
 #include "led.h"
 #include "logger.h"
@@ -36,4 +37,5 @@ int main(void) {
 
   Logger_Init();
 
+  APP_Init();
 }
