@@ -52,3 +52,9 @@ adc_config_t pot_adc_config =
 
     .trigger = ADC_TRIGGER_FREE_RUNNING
 };
+
+twi_config_t lcd_twi_config =
+{
+    .clock = 100000UL,
+    .prescaler = TWI_PRESCALER_1
+};

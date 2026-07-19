@@ -37,6 +37,8 @@ target_link_libraries(${PROJECT_NAME}.elf
         btn
         led
         board
+        lcd
+        twi
 )
 
 add_custom_command(

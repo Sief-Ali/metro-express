@@ -16,4 +16,5 @@ target_link_libraries(board
         led
         adc
         analog
+        twi
 )

@@ -4,6 +4,7 @@
 #include "btn.h"
 #include "led.h"
 #include "adc_types.h"
+#include "twi_types.h"
 
 #define DELAY_MS 200
 
@@ -39,5 +40,7 @@ typedef struct
 extern board_buttons_t btn;
 
 extern adc_config_t pot_adc_config;
+
+extern twi_config_t lcd_twi_config;
 
 #endif

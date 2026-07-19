@@ -6,6 +6,7 @@
 #include "led.h"
 #include "logger.h"
 #include "board.h"
+#include "twi.h"
 
 
 static led_t * const board_led_list[] = {
@@ -35,6 +36,8 @@ int main(void) {
   
   Analog_Init(&pot_adc_config);
 
+  TWI_Init(&lcd_twi_config);
+  
   Logger_Init();
 
   APP_Init();
