@@ -1,22 +1,12 @@
 #include "app.h"
-#include "lcd.h"
-#include "lcd_config.h"
+
+#include "ui.h"
 #include "logger.h"
 
 void APP_Init(void)
 {
+    UI_ShowState(UI_STATE_IDLE);
 
-  LCD_Init(&lcd_display);
-
-  LCD_Clear(&lcd_display);
-
-  /* Center of a 16x2 LCD:
-   * "Hello World!" = 14 chars
-   * (16 - 14) / 2 = column 1
-   */
-  LCD_SetCursor(&lcd_display, 0, 1);
-  LCD_PrintString(&lcd_display, "Metro Express");
-  
     /* Register interrupts */
 
     /* Initialize controller */

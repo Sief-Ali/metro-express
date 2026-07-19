@@ -8,5 +8,5 @@ add_library(app STATIC
 target_link_libraries(app
     PUBLIC
         logger
-        lcd
+        ui
 )
