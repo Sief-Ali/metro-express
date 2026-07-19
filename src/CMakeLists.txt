@@ -39,6 +39,7 @@ target_link_libraries(${PROJECT_NAME}.elf
         board
         lcd
         twi
+        app
 )
 
 add_custom_command(
