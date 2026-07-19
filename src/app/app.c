@@ -5,7 +5,7 @@
 
 void APP_Init(void)
 {
-    UI_ShowState(UI_STATE_IDLE);
+    UI_SetPage(UI_PAGE_IDLE);
 
     /* Register interrupts */
 
@@ -25,6 +25,7 @@ void APP_Run(void)
 {
     while (1)
     {
+        UI_Update();
         /* Read flags */
 
         /* Update controller */

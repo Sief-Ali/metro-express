@@ -1,10 +1,28 @@
 #ifndef UI_H
 #define UI_H
 
-typedef enum {
-  UI_STATE_IDLE
-} ui_state_t;
+typedef enum
+{
+    UI_PAGE_IDLE,
 
-void UI_ShowState(ui_state_t state);
+    UI_PAGE_SELECT_DESTINATION,
+
+    UI_PAGE_SELECT_QUANTITY,
+
+    UI_PAGE_CONFIRMATION,
+
+    UI_PAGE_PROCESSING,
+
+    UI_PAGE_TICKET,
+
+    UI_PAGE_CANCELLED,
+
+    UI_PAGE_ERROR
+
+} ui_page_t;
+
+void UI_SetPage(ui_page_t state);
+
+void UI_Update(void);
 
 #endif

@@ -16,13 +16,18 @@ static void ui_idle(void) {
   LCD_PrintString(&lcd_display, "Metro Express");
 }
 
-void UI_ShowState(ui_state_t state) {
+void UI_SetPage(ui_page_t state) {
   switch (state) {
-    case UI_STATE_IDLE:
+    case UI_PAGE_IDLE:
         ui_idle();
         break;
     default:
         ui_idle();
         break;
   }
+}
+
+/* Todo: Updates the ui according to the machine state*/
+void UI_Update(void){
+  UI_SetPage(UI_PAGE_IDLE);
 }
