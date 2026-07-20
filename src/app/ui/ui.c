@@ -2,6 +2,7 @@
 
 #include "lcd.h"
 #include "lcd_config.h"
+#include "controller_types.h"
 
 static void ui_idle(void) {
   LCD_Init(&lcd_display);
@@ -27,7 +28,17 @@ void UI_SetPage(ui_page_t state) {
   }
 }
 
-/* Todo: Updates the ui according to the machine state*/
-void UI_Update(void){
-  UI_SetPage(UI_PAGE_IDLE);
+void UI_Update(controller_state_t current_state) {
+  ui_page_t target_page;
+  
+  switch (current_state) {
+    case STATE_IDLE:
+        target_page = UI_PAGE_IDLE;
+      break;
+    default:
+        target_page = UI_PAGE_IDLE;
+      break;
+  }
+
+  UI_SetPage(target_page);
 }

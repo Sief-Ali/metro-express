@@ -13,5 +13,6 @@ target_link_libraries(ui
         avr_options
         lcd
         board
+        controller
 )
  

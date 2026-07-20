@@ -1,6 +1,8 @@
 #ifndef UI_H
 #define UI_H
 
+#include "controller_types.h"
+
 typedef enum
 {
     UI_PAGE_IDLE,
@@ -23,6 +25,6 @@ typedef enum
 
 void UI_SetPage(ui_page_t state);
 
-void UI_Update(void);
+void UI_Update(controller_state_t current_state);
 
 #endif
