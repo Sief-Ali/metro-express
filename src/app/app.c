@@ -3,8 +3,11 @@
 
 #include <stdbool.h>
 
+#include "board.h"
+#include "btn.h"
 #include "controller.h"
 #include "controller_types.h"
+#include "ext_int.h"
 #include "ui.h"
 #include "logger.h"
 
@@ -12,8 +15,37 @@ controller_state_t current_state = STATE_IDLE;
 
 extint_flags_t extint_flags = {false}; 
 
+static void OnNextBTNEdge(void) {
+  extint_flags.next_pressed = true;
+}
+
+static void OnConfirmBTNEdge(void) {
+  extint_flags.confirm_pressed = true;
+}
+
+static void OnCancelBTNEdge(void) {
+  extint_flags.cancel_pressed = true;
+}
+
 void APP_Init(void)
 {
+
+    BTN_InitInterrupt(
+        &btn.next,
+        EXT_INT_TRIGGER_FALLING_EDGE,
+        OnNextBTNEdge);
+
+    BTN_InitInterrupt(
+        &btn.confirm,
+        EXT_INT_TRIGGER_FALLING_EDGE,
+        OnConfirmBTNEdge);
+
+    BTN_InitInterrupt(
+        &btn.cancel,
+        EXT_INT_TRIGGER_FALLING_EDGE,
+        OnCancelBTNEdge);
+
+    EXT_INT_GlobalEnable();
 
     UI_SetPage(UI_PAGE_IDLE);
 
