@@ -4,6 +4,8 @@
 #include "lcd_config.h"
 #include "controller_types.h"
 
+static controller_state_t last_state;
+
 static void UI_Idle(void) {
   LCD_Init(&lcd_display);
 
@@ -45,6 +47,11 @@ void UI_SetPage(ui_page_t state) {
 }
 
 void UI_Update(volatile controller_state_t * current_state) {
+
+  if (last_state == *current_state) return;
+  
+  last_state = *current_state;
+
   ui_page_t target_page;
   
   switch (*current_state) {
