@@ -4,26 +4,42 @@
 #include "lcd_config.h"
 #include "controller_types.h"
 
-static void ui_idle(void) {
+static void UI_Idle(void) {
   LCD_Init(&lcd_display);
 
   LCD_Clear(&lcd_display);
 
   /* Center of a 16x2 LCD:
-   * "Hello World!" = 14 chars
+   * "Metro Express" = 14 chars
    * (16 - 14) / 2 = column 1
    */
   LCD_SetCursor(&lcd_display, 0, 1);
   LCD_PrintString(&lcd_display, "Metro Express");
 }
 
+static void UI_Select_Destination(void) {
+  LCD_Init(&lcd_display);
+
+  LCD_Clear(&lcd_display);
+
+  /* Center of a 16x2 LCD:
+   * "Select Destinat" = 16 chars
+   * (16 - 16) / 2 = error //just keep it 0
+   */
+  LCD_SetCursor(&lcd_display, 0, 0);
+  LCD_PrintString(&lcd_display, "Select Destinat");
+}
+
 void UI_SetPage(ui_page_t state) {
   switch (state) {
     case UI_PAGE_IDLE:
-        ui_idle();
+        UI_Idle();
+        break;
+    case UI_PAGE_SELECT_DESTINATION:
+        UI_Select_Destination();
         break;
     default:
-        ui_idle();
+        UI_Idle();
         break;
   }
 }
@@ -34,6 +50,9 @@ void UI_Update(controller_state_t current_state) {
   switch (current_state) {
     case STATE_IDLE:
         target_page = UI_PAGE_IDLE;
+      break;
+    case STATE_SELECT_DESTINATION:
+        target_page = UI_PAGE_SELECT_DESTINATION;
       break;
     default:
         target_page = UI_PAGE_IDLE;
