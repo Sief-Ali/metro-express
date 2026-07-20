@@ -1,6 +1,7 @@
 #include "controller.h"
 #include "controller_types.h"
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #include "app_types.h"
@@ -8,15 +9,28 @@
 
 static volatile controller_state_t last_state;
 static volatile controller_state_t *current_state_ptr = NULL;
-
 static volatile extint_flags_t *extint_flags_ptr = NULL;
 
+static void clear_flags(void){
+  extint_flags_ptr->next_pressed = false;
+  extint_flags_ptr->confirm_pressed = false;
+  extint_flags_ptr->cancel_pressed = false;
+}
+
+static bool check_and_clear_flag(volatile bool *flag) {
+    if (flag != NULL && *flag == true) {
+        *flag = false; // Clear it immediately
+        return true;   // Tell the caller it was active
+    }
+    return false;
+}
+
 static void Idle_State(void) {
-  // Check if the pointer is not NULL first to prevent crashing
   if (extint_flags_ptr != NULL) {
-      
-      // Correct syntax using the arrow operator
-      if (extint_flags_ptr->next_pressed || extint_flags_ptr->confirm_pressed) {
+      bool next = check_and_clear_flag(&extint_flags_ptr->next_pressed);
+      bool confirm = check_and_clear_flag(&extint_flags_ptr->confirm_pressed);
+
+      if (next || confirm) {
           last_state = *current_state_ptr;
           *current_state_ptr = STATE_SELECT_DESTINATION;
 
@@ -24,32 +38,27 @@ static void Idle_State(void) {
             LOG_INFO,
             "[0x00]:WAKE UP Go Select Destination page");
 
-          extint_flags_ptr->next_pressed = false;
-          extint_flags_ptr->confirm_pressed = false;
+          clear_flags();
       }
-      
   }
 }
 
 static void Select_Destination_State(void) {
-  // Check if the pointer is not NULL first to prevent crashing
   if (extint_flags_ptr != NULL) {
-      
-      // Correct syntax using the arrow operator
-      if (extint_flags_ptr->cancel_pressed) {
+      bool cancel = check_and_clear_flag(&extint_flags_ptr->cancel_pressed);
+
+      if (cancel) {
           last_state = *current_state_ptr;
           *current_state_ptr = STATE_IDLE;
           
           Logger_Log(
             LOG_INFO,
-            "[0x00]:Cancel back to ideal");        
+            "[0x00]:Cancel back to ideal");
 
-          extint_flags_ptr->cancel_pressed = false;
+          clear_flags();
       }
-      
   }
 }
-
 
 void Controller_SetState(controller_state_t current_state) {
   switch (current_state) {
@@ -75,9 +84,9 @@ void Controller_Init(volatile controller_state_t * current_state) {
 }
 
 void Controller_Update(volatile controller_state_t * current_state, volatile extint_flags_t *flags) {
-
   current_state_ptr = current_state;
   extint_flags_ptr = flags;
 
+  // Excellent fix here! Evaluating the actual active state value.
   Controller_SetState(*current_state);
 }
