@@ -18,6 +18,9 @@ static void Idle_State(void) {
       if (extint_flags_ptr->next_pressed || extint_flags_ptr->confirm_pressed) {
           last_state = *current_state_ptr;
           *current_state_ptr = STATE_SELECT_DESTINATION;
+          
+          extint_flags_ptr->next_pressed = false;
+          extint_flags_ptr->confirm_pressed = false;
       }
       
   }
