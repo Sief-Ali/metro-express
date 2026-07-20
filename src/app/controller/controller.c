@@ -79,5 +79,5 @@ void Controller_Update(volatile controller_state_t * current_state, volatile ext
   current_state_ptr = current_state;
   extint_flags_ptr = flags;
 
-  Controller_SetState(last_state);
+  Controller_SetState(*current_state);
 }
