@@ -18,9 +18,24 @@ static void Idle_State(void) {
       if (extint_flags_ptr->next_pressed || extint_flags_ptr->confirm_pressed) {
           last_state = *current_state_ptr;
           *current_state_ptr = STATE_SELECT_DESTINATION;
-          
+
           extint_flags_ptr->next_pressed = false;
           extint_flags_ptr->confirm_pressed = false;
+      }
+      
+  }
+}
+
+static void Select_Destination_State(void) {
+  // Check if the pointer is not NULL first to prevent crashing
+  if (extint_flags_ptr != NULL) {
+      
+      // Correct syntax using the arrow operator
+      if (extint_flags_ptr->cancel_pressed) {
+          last_state = *current_state_ptr;
+          *current_state_ptr = STATE_IDLE;
+          
+          extint_flags_ptr->cancel_pressed = false;
       }
       
   }
@@ -31,6 +46,9 @@ void Controller_SetState(controller_state_t current_state) {
   switch (current_state) {
     case STATE_IDLE:
         Idle_State();
+        break;
+    case STATE_SELECT_DESTINATION:
+        Select_Destination_State();
         break;
     default:
         Idle_State();
