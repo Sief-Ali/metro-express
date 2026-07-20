@@ -25,6 +25,6 @@ typedef enum
 
 void UI_SetPage(ui_page_t state);
 
-void UI_Update(controller_state_t current_state);
+void UI_Update(volatile controller_state_t * current_state);
 
 #endif

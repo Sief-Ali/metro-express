@@ -13,5 +13,6 @@ target_link_libraries(controller
     PUBLIC
         avr_options
         app
+        logger
 )
  

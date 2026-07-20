@@ -44,10 +44,10 @@ void UI_SetPage(ui_page_t state) {
   }
 }
 
-void UI_Update(controller_state_t current_state) {
+void UI_Update(volatile controller_state_t * current_state) {
   ui_page_t target_page;
   
-  switch (current_state) {
+  switch (*current_state) {
     case STATE_IDLE:
         target_page = UI_PAGE_IDLE;
       break;

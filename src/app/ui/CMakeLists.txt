@@ -14,5 +14,6 @@ target_link_libraries(ui
         lcd
         board
         controller
+        logger
 )
  

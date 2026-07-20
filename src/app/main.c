@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <util/delay.h>
 
 #include "analog.h"
@@ -41,4 +42,5 @@ int main(void) {
   Logger_Init();
 
   APP_Init();
+  APP_Run();
 }

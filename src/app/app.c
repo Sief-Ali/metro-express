@@ -11,9 +11,9 @@
 #include "ui.h"
 #include "logger.h"
 
-controller_state_t current_state = STATE_IDLE;
+volatile controller_state_t current_state = STATE_IDLE;
 
-extint_flags_t extint_flags = {false}; 
+volatile extint_flags_t extint_flags = {false}; 
 
 static void OnNextBTNEdge(void) {
   extint_flags.next_pressed = true;
@@ -69,7 +69,7 @@ void APP_Run(void)
 {
     while (1)
     {
-        UI_Update(current_state);
+        UI_Update(&current_state);
 
         Controller_Update(&current_state, &extint_flags);
 
