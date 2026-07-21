@@ -1,5 +1,4 @@
 #include "controller.h"
-#include "adc.h"
 #include "analog.h"
 #include "controller_types.h"
 
