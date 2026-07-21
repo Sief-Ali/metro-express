@@ -32,4 +32,6 @@ void UI_Update_Page(volatile controller_state_t * current_state);
 
 void UI_Update_Quantity(uint8_t quantity);
 
+void UI_Update_Destination(const char* destination_name);
+
 #endif

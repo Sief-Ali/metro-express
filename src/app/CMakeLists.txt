@@ -21,4 +21,5 @@ target_link_libraries(app
         controller
         board
         btn
+        passenger
 )

@@ -8,6 +8,7 @@
 #include "controller.h"
 #include "controller_types.h"
 #include "ext_int.h"
+#include "passenger.h"
 #include "ui.h"
 #include "logger.h"
 
@@ -47,17 +48,11 @@ void APP_Init(void)
 
     EXT_INT_GlobalEnable();
 
+    Passenger_Init();
+    
     UI_SetPage(UI_PAGE_IDLE);
 
     Controller_Init(&current_state);
-
-    /* Register interrupts */
-
-    /* Initialize controller */
-
-    /* Initialize passenger */
-
-    /* Initialize error system */
 
     Logger_Log(
       LOG_INFO,
@@ -72,11 +67,5 @@ void APP_Run(void)
         UI_Update_Page(&current_state);
 
         Controller_Update(&current_state, &extint_flags);
-
-        /* Read flags */
-
-        /* Update controller */
-
-        /* Housekeeping */
     }
 }

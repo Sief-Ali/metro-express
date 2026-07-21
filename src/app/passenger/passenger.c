@@ -1,6 +1,5 @@
 #include "passenger.h"
-#include <stdio.h>
-#include <string.h>
+#include "passenger_types.h"
 
 #define DEFAULT_STUDENT_ID "463688431"
 

@@ -1,5 +1,6 @@
 add_library(passenger STATIC
     passenger.c
+    passenger_types.c
     include/passenger.h
     include/passenger_types.h
 )

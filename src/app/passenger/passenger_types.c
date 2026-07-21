@@ -1,6 +1,6 @@
 #include "passenger_types.h"
 
-const destination_info_t destination_info[DESTINATION_COUNT] = {
+extern const destination_info_t destination_info[DESTINATION_COUNT] = {
     [ALEXANDRIA]    = { .display_name = "Alex.",    .code = "ALX" },
     [CAIRO]         = { .display_name = "Cairo",    .code = "CAI" },
     [ASWAN]         = { .display_name = "Aswan",    .code = "ASW" },

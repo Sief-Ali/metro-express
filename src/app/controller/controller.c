@@ -8,6 +8,7 @@
 
 #include "app_types.h"
 #include "logger.h"
+#include "passenger.h"
 #include "ui.h"
 
 static volatile controller_state_t last_state;
@@ -30,6 +31,21 @@ static bool check_and_clear_flag(volatile bool *flag) {
     return false;
 }
 
+static void Cancel(bool cancel) {
+    if (cancel) {
+        Passenger_Reset();
+
+        last_state = *current_state_ptr;
+        *current_state_ptr = STATE_IDLE;
+        
+        Logger_Log(
+          LOG_INFO,
+          "[0x00]:Cancel back to ideal");
+
+        clear_flags();
+    }
+}
+
 //state handlers
 
 static void Idle_State(void) {
@@ -38,6 +54,8 @@ static void Idle_State(void) {
       bool confirm = check_and_clear_flag(&extint_flags_ptr->confirm_pressed);
 
       if (next || confirm) {
+          Passenger_Reset();
+
           last_state = *current_state_ptr;
           *current_state_ptr = STATE_SELECT_DESTINATION;
 
@@ -57,7 +75,12 @@ static void Select_Destination_State(void) {
 
       bool cancel = check_and_clear_flag(&extint_flags_ptr->cancel_pressed);
 
-      if (next || confirm) {
+      if (next) {
+          Passenger_NextDestination();
+          UI_Update_Destination(Passenger_GetSelectedDestinationName());
+      }
+
+      if (confirm) {
           last_state = *current_state_ptr;
           *current_state_ptr = STATE_SELECT_QUANTITY;
 
@@ -68,16 +91,7 @@ static void Select_Destination_State(void) {
           clear_flags();
       }
 
-      if (cancel) {
-          last_state = *current_state_ptr;
-          *current_state_ptr = STATE_IDLE;
-          
-          Logger_Log(
-            LOG_INFO,
-            "[0x00]:Cancel back to ideal");
-
-          clear_flags();
-      }
+      Cancel(cancel);
   }
 }
 
@@ -89,6 +103,11 @@ static void Select_Quantity_State(void) {
       bool cancel = check_and_clear_flag(&extint_flags_ptr->cancel_pressed);
 
       uint8_t current_quantity = Analog_Get_Quantity();
+      
+      if (current_quantity != last_quantity) {
+          last_quantity = current_quantity;
+          UI_Update_Quantity(current_quantity);
+      }
 
       if (next || confirm) {
           if (current_quantity <= 0U) {
@@ -109,28 +128,13 @@ static void Select_Quantity_State(void) {
             LOG_INFO,
             "[0x00]:NEXT Go No Where");
 
-          clear_flags();
-          return;
-      }
-
-      if (cancel) {
-          last_state = *current_state_ptr;
-          *current_state_ptr = STATE_IDLE;
-          
-          Logger_Log(
-            LOG_INFO,
-            "[0x00]:Cancel back to ideal");
+          Passenger_SetQuantity(current_quantity);
 
           clear_flags();
           return;
       }
 
-      if (current_quantity != last_quantity) {
-          last_quantity = current_quantity;
-
-          UI_Update_Quantity(current_quantity);
-      }
-
+      Cancel(cancel);
   }
 }
   

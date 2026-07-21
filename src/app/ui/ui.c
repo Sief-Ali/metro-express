@@ -46,10 +46,24 @@ static void UI_Set_Quantity(uint8_t quantity) {
    * number takes one column at 9 and space one column at 7 and 8 before number
    */
   LCD_SetCursor(&lcd_display, 1, 0);
-  LCD_PrintString(&lcd_display, "Quant.");
+  LCD_PrintString(&lcd_display, "Quant.:");
 
   LCD_SetCursor(&lcd_display, 1, 9);
   LCD_PrintString(&lcd_display, Str(quantity));
+}
+
+static void UI_Set_Destination(const char* destination_name) {
+
+  /* Center of a 16x2 LCD:
+   * "Quant." = 7 chars
+   * (16 - 7) = 9 column left
+   * number takes one column at 9 and space one column at 7 and 8 before number
+   */
+  LCD_SetCursor(&lcd_display, 1, 0);
+  LCD_PrintString(&lcd_display, "Dest.:");
+
+  LCD_SetCursor(&lcd_display, 1, 8);
+  LCD_PrintString(&lcd_display, destination_name);
 }
 
 // UI components updater
@@ -63,6 +77,12 @@ void UI_Update_Quantity(uint8_t quantity) {
     UI_Set_Quantity(0);
     setLedOn(&led.ready);
   }
+}
+
+void UI_Update_Destination(const char* destination_name) {
+  if (current_page != UI_PAGE_SELECT_DESTINATION) return;
+
+  UI_Set_Destination(destination_name);
 }
 
 // state handlers
@@ -93,6 +113,8 @@ static void UI_Select_Destination(void) {
    */
   LCD_SetCursor(&lcd_display, 0, 0);
   LCD_PrintString(&lcd_display, "Select Destinat");
+
+  UI_Set_Destination("Next");
 
   setLedOn(&led.ready);
 }
