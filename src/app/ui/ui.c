@@ -38,7 +38,6 @@ static void setLedOn(led_t * led){
 // UI Components
 
 static void UI_Set_Quantity(uint8_t quantity) {
-  LCD_Init(&lcd_display);
 
   /* Center of a 16x2 LCD:
    * "Quant." = 7 chars
@@ -58,8 +57,12 @@ void UI_Update_Quantity(uint8_t quantity) {
   if (current_page != UI_PAGE_SELECT_QUANTITY) return;
 
   if (!(quantity > 0U) || !(quantity > 5U)) {
+    LCD_Init(&lcd_display);
+    
     UI_Set_Quantity(quantity);
   } else {
+    LCD_Init(&lcd_display);
+
     UI_Set_Quantity(0);
     setLedOn(&led.ready);
   }
