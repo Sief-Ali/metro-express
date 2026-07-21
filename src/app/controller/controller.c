@@ -1,15 +1,21 @@
 #include "controller.h"
+#include "adc.h"
+#include "analog.h"
 #include "controller_types.h"
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #include "app_types.h"
 #include "logger.h"
+#include "ui.h"
 
 static volatile controller_state_t last_state;
 static volatile controller_state_t *current_state_ptr = NULL;
 static volatile extint_flags_t *extint_flags_ptr = NULL;
+static volatile uint8_t last_quantity = 0U;
+
 
 static void clear_flags(void){
   extint_flags_ptr->next_pressed = false;
@@ -83,6 +89,8 @@ static void Select_Quantity_State(void) {
 
       bool cancel = check_and_clear_flag(&extint_flags_ptr->cancel_pressed);
 
+      uint8_t current_quantity = Analog_Get_Quantity();
+
       if (next || confirm) {
           last_state = *current_state_ptr;
           *current_state_ptr = STATE_SELECT_QUANTITY;
@@ -92,6 +100,7 @@ static void Select_Quantity_State(void) {
             "[0x00]:NEXT Go No Where");
 
           clear_flags();
+          return;
       }
 
       if (cancel) {
@@ -103,7 +112,15 @@ static void Select_Quantity_State(void) {
             "[0x00]:Cancel back to ideal");
 
           clear_flags();
+          return;
       }
+
+      if (current_quantity != last_quantity) {
+          last_quantity = current_quantity;
+
+          UI_Update_Quantity(current_quantity);
+      }
+
   }
 }
   

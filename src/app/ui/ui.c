@@ -56,13 +56,9 @@ static void UI_Set_Quantity(uint8_t quantity) {
 void UI_Update_Quantity(uint8_t quantity) {
   if (current_page != UI_PAGE_SELECT_QUANTITY) return;
 
-  if (!(quantity > 0U) || !(quantity > 5U)) {
-    LCD_Init(&lcd_display);
-    
+  if (!(quantity > 0U) || !(quantity > 5U)) {    
     UI_Set_Quantity(quantity);
   } else {
-    LCD_Init(&lcd_display);
-
     UI_Set_Quantity(0);
     setLedOn(&led.ready);
   }
@@ -135,7 +131,7 @@ void UI_SetPage(ui_page_t page) {
   current_page = page;
 }
 
-void UI_Update(volatile controller_state_t * current_state) {
+void UI_Update_Page(volatile controller_state_t * current_state) {
 
   if (last_state == *current_state) return;
   

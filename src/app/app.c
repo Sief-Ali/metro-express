@@ -69,7 +69,7 @@ void APP_Run(void)
 {
     while (1)
     {
-        UI_Update(&current_state);
+        UI_Update_Page(&current_state);
 
         Controller_Update(&current_state, &extint_flags);
 

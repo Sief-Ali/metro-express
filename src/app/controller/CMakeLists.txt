@@ -14,5 +14,7 @@ target_link_libraries(controller
         avr_options
         app
         logger
+        ui
+        analog
 )
  
