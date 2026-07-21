@@ -25,6 +25,8 @@ static bool check_and_clear_flag(volatile bool *flag) {
     return false;
 }
 
+//state handlers
+
 static void Idle_State(void) {
   if (extint_flags_ptr != NULL) {
       bool next = check_and_clear_flag(&extint_flags_ptr->next_pressed);
@@ -36,7 +38,7 @@ static void Idle_State(void) {
 
           Logger_Log(
             LOG_INFO,
-            "[0x00]:WAKE UP Go Select Destination page");
+            "[0x00]:WAKE UP Go Select Destination");
 
           clear_flags();
       }
@@ -45,7 +47,21 @@ static void Idle_State(void) {
 
 static void Select_Destination_State(void) {
   if (extint_flags_ptr != NULL) {
+      bool next = check_and_clear_flag(&extint_flags_ptr->next_pressed);
+      bool confirm = check_and_clear_flag(&extint_flags_ptr->confirm_pressed);
+
       bool cancel = check_and_clear_flag(&extint_flags_ptr->cancel_pressed);
+
+      if (next || confirm) {
+          last_state = *current_state_ptr;
+          *current_state_ptr = STATE_SELECT_QUANTITY;
+
+          Logger_Log(
+            LOG_INFO,
+            "[0x00]:NEXT Go Select Quantity");
+
+          clear_flags();
+      }
 
       if (cancel) {
           last_state = *current_state_ptr;
@@ -60,17 +76,52 @@ static void Select_Destination_State(void) {
   }
 }
 
+static void Select_Quantity_State(void) {
+  if (extint_flags_ptr != NULL) {
+      bool next = check_and_clear_flag(&extint_flags_ptr->next_pressed);
+      bool confirm = check_and_clear_flag(&extint_flags_ptr->confirm_pressed);
+
+      bool cancel = check_and_clear_flag(&extint_flags_ptr->cancel_pressed);
+
+      if (next || confirm) {
+          last_state = *current_state_ptr;
+          *current_state_ptr = STATE_SELECT_QUANTITY;
+
+          Logger_Log(
+            LOG_INFO,
+            "[0x00]:NEXT Go No Where");
+
+          clear_flags();
+      }
+
+      if (cancel) {
+          last_state = *current_state_ptr;
+          *current_state_ptr = STATE_IDLE;
+          
+          Logger_Log(
+            LOG_INFO,
+            "[0x00]:Cancel back to ideal");
+
+          clear_flags();
+      }
+  }
+}
+  
+// main controls
 void Controller_SetState(controller_state_t current_state) {
   switch (current_state) {
     case STATE_IDLE:
         Idle_State();
-        break;
+      break;
     case STATE_SELECT_DESTINATION:
         Select_Destination_State();
-        break;
+      break;
+    case STATE_SELECT_QUANTITY:
+        Select_Quantity_State();
+      break;
     default:
         Idle_State();
-        break;
+      break;
   }
 }
 
