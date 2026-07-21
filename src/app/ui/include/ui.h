@@ -20,7 +20,9 @@ typedef enum
 
     UI_PAGE_CANCELLED,
 
-    UI_PAGE_ERROR
+    UI_PAGE_ERROR,
+
+    UI_PAGE_QUANTITY_NOT_VALID
 
 } ui_page_t;
 

@@ -14,7 +14,7 @@
 static volatile controller_state_t last_state;
 static volatile controller_state_t *current_state_ptr = NULL;
 static volatile extint_flags_t *extint_flags_ptr = NULL;
-static volatile uint8_t last_quantity = 0U;
+static volatile uint8_t last_quantity = 10U;
 
 
 static void clear_flags(void){
@@ -92,6 +92,17 @@ static void Select_Quantity_State(void) {
       uint8_t current_quantity = Analog_Get_Quantity();
 
       if (next || confirm) {
+          if (current_quantity <= 0U) {
+              Logger_Log(
+                LOG_ERROR,
+                "[0x00]:Choose quantity. Quantity valid between 1 and 5");
+              UI_SetPage(UI_PAGE_QUANTITY_NOT_VALID);
+
+
+              clear_flags();
+              return;
+          }
+          
           last_state = *current_state_ptr;
           *current_state_ptr = STATE_SELECT_QUANTITY;
 

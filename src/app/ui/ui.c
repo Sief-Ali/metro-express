@@ -7,6 +7,7 @@
 #include "led.h"
 #include "str.h"
 #include <stdint.h>
+#include <util/delay.h>
 
 static controller_state_t last_state;
 static ui_page_t current_page;
@@ -113,6 +114,32 @@ static void UI_Select_Quantity(void) {
   setLedOn(&led.ready);
 }
 
+static void UI_Error(ui_page_t error_page) {
+  LCD_Init(&lcd_display);
+
+  setLedOn(&led.error);
+  
+  LCD_Clear(&lcd_display);
+
+  switch (error_page) {
+    case UI_PAGE_QUANTITY_NOT_VALID:
+        LCD_SetCursor(&lcd_display, 0, 0);
+        LCD_PrintString(&lcd_display, "Error: Select");
+        LCD_SetCursor(&lcd_display, 1, 1);
+        LCD_PrintString(&lcd_display, "Valid Quantity");
+      break;
+    default:
+        LCD_SetCursor(&lcd_display, 0, 0);
+        LCD_PrintString(&lcd_display, "Select Quantity");
+      break;
+  }
+  last_state = STATE_ERROR;
+
+  _delay_ms(2000);
+
+  setLedOn(&led.ready);
+}
+
 void UI_SetPage(ui_page_t page) {
   switch (page) {
     case UI_PAGE_IDLE:
@@ -123,6 +150,9 @@ void UI_SetPage(ui_page_t page) {
       break;
     case UI_PAGE_SELECT_QUANTITY:
         UI_Select_Quantity();
+      break;
+    case UI_PAGE_QUANTITY_NOT_VALID:
+        UI_Error(UI_PAGE_QUANTITY_NOT_VALID);
       break;
     default:
         UI_Idle();
