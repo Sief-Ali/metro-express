@@ -15,5 +15,6 @@ target_link_libraries(ui
         board
         controller
         logger
+        utils
 )
  
