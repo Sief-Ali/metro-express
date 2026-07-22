@@ -11,6 +11,7 @@
 #include "app_types.h"
 #include "logger.h"
 #include "passenger.h"
+#include "timer_service.h"
 #include "ui.h"
 
 static volatile controller_state_t last_state;
@@ -31,21 +32,47 @@ static bool check_and_clear_flag(volatile bool *flag) {
     return false;
 }
 
+// timeout 
+static volatile uint16_t inactivity_counter_ms = 0;
+#define INACTIVITY_TIMEOUT_MS 15000U // 15 Seconds for D1 = 1
+
+// Timer Callback (Runs in ISR context every 100ms)
+static void OnInactivityTick(void) {
+    inactivity_counter_ms += 100U;
+}
+
+// Helper to start or reset timer on user activity
+void Controller_ResetInactivityTimer(void) {
+    inactivity_counter_ms = 0;
+    // Arm Timer 1 to fire every 100ms
+    TIMER_SERVICE_SetInterval(TIMER_1, 100U, OnInactivityTick);
+}
+
+// Helper to stop timer when entering IDLE
+void Controller_StopInactivityTimer(void) {
+    TIMER_SERVICE_Cancel(TIMER_1);
+    inactivity_counter_ms = 0;
+}
+
+// cancel handler
+
 static void Cancel(bool cancel) {
-    if (cancel) {
-        Passenger_Reset();
+  if (cancel) {
+      Passenger_Reset();
+      Controller_StopInactivityTimer();
 
-        last_state = *current_state_ptr;
-        *current_state_ptr = STATE_IDLE;
-        
-        Logger_Log(
-          LOG_INFO,
-          "[0x00]:Cancel back to Idel");
+      last_state = *current_state_ptr;
+      *current_state_ptr = STATE_IDLE;
+      
+      Logger_Log(
+        LOG_INFO,
+        "[0x00]:Cancel back to Idel");
 
-        UI_SetPage(UI_PAGE_CANCELLED);
+      UI_SetPage(UI_PAGE_CANCELLED);
 
-        clear_flags();
-    }
+
+      clear_flags();
+  }
 }
 
 //state handlers
@@ -56,6 +83,8 @@ static void Idle_State(void) {
       bool confirm = check_and_clear_flag(&extint_flags_ptr->confirm_pressed);
 
       if (next || confirm) {
+          Controller_ResetInactivityTimer(); // Resets timer back to 0ms
+
           Passenger_Reset();
 
           last_state = *current_state_ptr;
@@ -78,11 +107,15 @@ static void Select_Destination_State(void) {
       bool cancel = check_and_clear_flag(&extint_flags_ptr->cancel_pressed);
 
       if (next) {
+          Controller_ResetInactivityTimer(); // Resets timer back to 0ms
+
           Passenger_NextDestination();
           UI_Update_Destination();
       }
 
       if (confirm) {
+          Controller_ResetInactivityTimer(); // Resets timer back to 0ms
+
           last_state = *current_state_ptr;
           *current_state_ptr = STATE_SELECT_QUANTITY;
 
@@ -108,11 +141,14 @@ static void Select_Quantity_State(void) {
       uint8_t last_qty = Passenger_GetQuantity();
 
       if (current_qty != last_qty) {
+          Controller_ResetInactivityTimer(); // Resets timer back to 0ms
+
           Passenger_SetQuantity(current_qty);
           UI_Update_Quantity();
       }
 
       if (next || confirm) {
+          Controller_ResetInactivityTimer(); // Resets timer back to 0ms
           if (current_qty <= 0U) {
               Logger_Log(
                 LOG_ERROR,
@@ -150,7 +186,9 @@ static void Confirmation_State(void) {
 
       bool cancel = check_and_clear_flag(&extint_flags_ptr->cancel_pressed);
 
-      if (next || confirm) {      
+      if (next || confirm) {  
+          Controller_ResetInactivityTimer(); // Resets timer back to 0ms
+    
           last_state = *current_state_ptr;
           *current_state_ptr = STATE_PROCESSING;
 
@@ -254,6 +292,15 @@ void Controller_Init(volatile controller_state_t * current_state) {
 void Controller_Update(volatile controller_state_t * current_state, volatile extint_flags_t *flags) {
   current_state_ptr = current_state;
   extint_flags_ptr = flags;
+
+  if (inactivity_counter_ms >= INACTIVITY_TIMEOUT_MS) {
+      Logger_Log(LOG_INFO, "[0x00]:Timeout 15s reached -> Returning to IDLE");
+      
+      Passenger_Reset();
+      Controller_StopInactivityTimer();
+      
+      *current_state_ptr = STATE_IDLE;
+  }
 
   // Excellent fix here! Evaluating the actual active state value.
   Controller_SetState(*current_state);

@@ -18,5 +18,6 @@ target_link_libraries(controller
         analog
         passenger
         board
+        timer_service
 )
  
