@@ -30,10 +30,10 @@ void UI_SetPage(ui_page_t state);
 
 void UI_Update_Page(volatile controller_state_t * current_state);
 
-void UI_Update_Quantity(uint8_t quantity);
+void UI_Update_Quantity(void);
 
-void UI_Update_Destination(const char* destination_name);
+void UI_Update_Destination(void);
 
-void UI_Update_Summarize(uint8_t qty, const char* destination_name);
+void UI_Update_Summarize(void);
 
 #endif

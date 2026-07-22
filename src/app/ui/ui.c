@@ -5,15 +5,13 @@
 #include "lcd_config.h"
 #include "controller_types.h"
 #include "led.h"
+#include "passenger.h"
 #include "str.h"
 #include <stdint.h>
 #include <util/delay.h>
 
 static controller_state_t last_state;
 static ui_page_t current_page;
-
-static volatile uint8_t last_quantity;
-static volatile char* last_destination;
 
 /*
   TODO: Refactor to adhere to DRY principles and use a component-based design with dedicated page title fields, rather than hardcoding UI text
@@ -41,26 +39,26 @@ static void setLedOn(led_t * led){
 
 // UI Components
 
-static void UI_Set_Quantity(uint8_t quantity) {
+static void UI_Set_Quantity(uint8_t qty) {
 
   /* Center of a 16x2 LCD:
-   * "Quant." = 7 chars
+   * "Qty. :" = 7 chars
    * (16 - 7) = 9 column left
-   * number takes one column at 9 and space one column at 7 and 8 before number
+   * number takes one column at 8 and space one column at 7 before it
    */
   LCD_SetCursor(&lcd_display, 1, 0);
-  LCD_PrintString(&lcd_display, "Qty.:");
+  LCD_PrintString(&lcd_display, "Qty. :");
 
-  LCD_SetCursor(&lcd_display, 1, 9);
-  LCD_PrintString(&lcd_display, Str(quantity));
+  LCD_SetCursor(&lcd_display, 1, 8);
+  LCD_PrintString(&lcd_display, Str(qty));
 }
 
 static void UI_Set_Destination(const char* destination_name) {
 
   /* Center of a 16x2 LCD:
-   * "Quant." = 7 chars
+   * "Dest.:" = 7 chars
    * (16 - 7) = 9 column left
-   * number takes one column at 9 and space one column at 7 and 8 before number
+   * destination name start column at 8 and space one column at 7 before it
    */
   LCD_SetCursor(&lcd_display, 1, 0);
   LCD_PrintString(&lcd_display, "Dest.:");
@@ -78,40 +76,44 @@ static void UI_Set_Summarize(uint8_t qty, const char* destination_name) {
   LCD_SetCursor(&lcd_display, 0, 8);
   LCD_PrintString(&lcd_display, destination_name);
   
-  // quantity
+  // qty
   LCD_SetCursor(&lcd_display, 1, 0);
-  LCD_PrintString(&lcd_display, "Qty.:");
+  LCD_PrintString(&lcd_display, "Qty. :");
 
-  LCD_SetCursor(&lcd_display, 1, 9);
+  LCD_SetCursor(&lcd_display, 1, 8);
   LCD_PrintString(&lcd_display, Str(qty));
 }
 
 // UI components updater
 
-void UI_Update_Quantity(uint8_t quantity) {
+void UI_Update_Quantity(void) {
   if (current_page != UI_PAGE_SELECT_QUANTITY) return;
 
-  if (!(quantity > 0U) || !(quantity > 5U)) {    
-    UI_Set_Quantity(quantity);
+  uint8_t qty = Passenger_GetQuantity();
+
+  if (!(qty > 0U) || !(qty > 5U)) {    
+    UI_Set_Quantity(qty);
   } else {
     UI_Set_Quantity(0);
     setLedOn(&led.ready);
   }
 }
 
-void UI_Update_Destination(const char* destination_name) {
+void UI_Update_Destination(void) {
   if (current_page != UI_PAGE_SELECT_DESTINATION) return;
+
+  const char* destination_name = Passenger_GetSelectedDestinationName();
 
   UI_Set_Destination(destination_name);
 }
 
-void UI_Update_Summarize(uint8_t qty, const char* destination_name) { 
-  last_quantity = qty;
-  last_destination = destination_name;
-  
-  if (current_page != UI_PAGE_CONFIRMATION) return;
+void UI_Update_Summarize(void) { 
+  // if (current_page != UI_PAGE_CONFIRMATION) return;
 
-  UI_Set_Summarize(last_quantity, last_destination);
+  const char* destination = Passenger_GetSelectedDestinationName();
+  uint8_t qty = Passenger_GetQuantity();
+
+  UI_Set_Summarize(qty, destination);
 }
 
 // state handlers
@@ -143,7 +145,9 @@ static void UI_Select_Destination(void) {
   LCD_SetCursor(&lcd_display, 0, 0);
   LCD_PrintString(&lcd_display, "Select Destinat");
 
-  UI_Set_Destination("Next");
+  const char* dest = Passenger_GetSelectedDestinationName();
+
+  UI_Set_Destination(dest);
 
   setLedOn(&led.ready);
 }
@@ -170,7 +174,7 @@ static void UI_Confirmation(void) {
 
   LCD_Clear(&lcd_display);
 
-  UI_Set_Summarize(last_quantity, last_destination);
+  UI_Update_Summarize();
 
   setLedOn(&led.ready);
 }

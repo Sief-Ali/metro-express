@@ -16,5 +16,6 @@ target_link_libraries(ui
         controller
         logger
         utils
+        passenger
 )
  

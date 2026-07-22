@@ -14,8 +14,6 @@
 static volatile controller_state_t last_state;
 static volatile controller_state_t *current_state_ptr = NULL;
 static volatile extint_flags_t *extint_flags_ptr = NULL;
-static volatile uint8_t last_quantity = 10U;
-
 
 static void clear_flags(void){
   extint_flags_ptr->next_pressed = false;
@@ -77,7 +75,7 @@ static void Select_Destination_State(void) {
 
       if (next) {
           Passenger_NextDestination();
-          UI_Update_Destination(Passenger_GetSelectedDestinationName());
+          UI_Update_Destination();
       }
 
       if (confirm) {
@@ -102,20 +100,20 @@ static void Select_Quantity_State(void) {
 
       bool cancel = check_and_clear_flag(&extint_flags_ptr->cancel_pressed);
 
-      uint8_t current_quantity = Analog_Get_Quantity();
-      
-      if (current_quantity != last_quantity) {
-          last_quantity = current_quantity;
-          UI_Update_Quantity(current_quantity);
+      uint8_t current_qty = Analog_Get_Quantity();
+      uint8_t last_qty = Passenger_GetQuantity();
+
+      if (current_qty != last_qty) {
+          Passenger_SetQuantity(current_qty);
+          UI_Update_Quantity();
       }
 
       if (confirm) {
-          if (current_quantity <= 0U) {
+          if (current_qty <= 0U) {
               Logger_Log(
                 LOG_ERROR,
-                "[0x00]:Choose quantity. Quantity valid between 1 and 5");
+                "[0x00]:Choose qty. Quantity valid between 1 and 5");
               UI_SetPage(UI_PAGE_QUANTITY_NOT_VALID);
-
 
               clear_flags();
               return;
@@ -128,12 +126,10 @@ static void Select_Quantity_State(void) {
             LOG_INFO,
             "[0x00]:NEXT Go To Confirmation");
 
-          const char* dest = Passenger_GetSelectedDestinationName();
-
-          UI_Update_Summarize(last_quantity, dest);
+          UI_Update_Summarize();
 
 
-          Passenger_SetQuantity(current_quantity);
+          Passenger_SetQuantity(current_qty);
 
           clear_flags();
           return;
