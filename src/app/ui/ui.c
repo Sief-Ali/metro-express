@@ -217,6 +217,22 @@ static void UI_Error(ui_page_t error_page) {
   _delay_ms(1500);
 }
 
+static void UI_Ticket(void) {
+  LCD_Init(&lcd_display);
+
+  LCD_Clear(&lcd_display);
+
+  const char *ticket_code = Passenger_GetTicketCode();
+
+  LCD_SetCursor(&lcd_display, 0, 0);
+  LCD_PrintString(&lcd_display, "Ticket Issued:");
+
+  LCD_SetCursor(&lcd_display, 1, 2);
+  LCD_PrintString(&lcd_display, ticket_code);
+
+  setLedOn(&led.ticket);
+}
+
 void UI_SetPage(ui_page_t page) {
   switch (page) {
     case UI_PAGE_IDLE:
@@ -236,6 +252,9 @@ void UI_SetPage(ui_page_t page) {
       break;
     case UI_PAGE_CONFIRMATION:
         UI_Confirmation();
+      break;
+    case UI_PAGE_TICKET:
+        UI_Ticket();
       break;
     default:
         UI_Idle();
@@ -264,6 +283,9 @@ void UI_Update_Page(volatile controller_state_t * current_state) {
       break;
     case STATE_CONFIRMATION:
         target_page = UI_PAGE_CONFIRMATION;
+      break;
+    case STATE_TICKET_ISSUED:
+        target_page = UI_PAGE_TICKET;
       break;
     default:
         target_page = UI_PAGE_IDLE;

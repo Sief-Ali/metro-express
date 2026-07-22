@@ -179,12 +179,36 @@ static void Processing_State(void) {
 
       *current_state_ptr = STATE_TICKET_ISSUED;
       
+      Logger_Log(
+        LOG_INFO,
+        "[0x00]:Go to Ticket Issued");
       
   } else {
       // Trigger Out-of-Stock Error E02
       UI_SetPage(UI_PAGE_OUT_OF_STOCK);
 
       *current_state_ptr = STATE_IDLE;
+  }
+}
+
+static void Ticket_Issued_State(void) {
+  if (extint_flags_ptr != NULL) {
+      bool next = check_and_clear_flag(&extint_flags_ptr->next_pressed);
+      bool confirm = check_and_clear_flag(&extint_flags_ptr->confirm_pressed);
+
+      bool cancel = check_and_clear_flag(&extint_flags_ptr->cancel_pressed);
+
+      if (next || confirm || cancel) {      
+          last_state = *current_state_ptr;
+          *current_state_ptr = STATE_IDLE;
+
+          Logger_Log(
+            LOG_INFO,
+            "[0x00]:Back To Idle");
+
+          clear_flags();
+          return;
+      }
   }
 }
 
@@ -206,6 +230,9 @@ void Controller_SetState(controller_state_t current_state) {
       break;
     case STATE_PROCESSING:
         Processing_State();
+      break;
+    case STATE_TICKET_ISSUED:
+        Ticket_Issued_State();
       break;
     default:
         Idle_State();
