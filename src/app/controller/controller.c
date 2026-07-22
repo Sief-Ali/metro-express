@@ -40,7 +40,7 @@ static void Cancel(bool cancel) {
         
         Logger_Log(
           LOG_INFO,
-          "[0x00]:Cancel back to ideal");
+          "[0x00]:Cancel back to Idel");
 
         UI_SetPage(UI_PAGE_CANCELLED);
 
