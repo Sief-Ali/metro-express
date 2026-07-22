@@ -183,6 +183,8 @@ static void Processing_State(void) {
   } else {
       // Trigger Out-of-Stock Error E02
       UI_SetPage(UI_PAGE_OUT_OF_STOCK);
+
+      *current_state_ptr = STATE_IDLE;
   }
 }
 
