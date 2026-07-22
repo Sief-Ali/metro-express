@@ -231,7 +231,7 @@ static void UI_Ticket(void) {
   LCD_SetCursor(&lcd_display, 0, 0);
   LCD_PrintString(&lcd_display, "Ticket Issued:");
 
-  LCD_SetCursor(&lcd_display, 1, 2);
+  LCD_SetCursor(&lcd_display, 1, 1);
   LCD_PrintString(&lcd_display, ticket_code);
 
   setLedOn(&led.ticket);
