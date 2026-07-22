@@ -45,6 +45,7 @@ Makefile
 *.swp
 *.swo
 *~
+.VSCodeCounter
 
 # # SimulIDE local files
 # .simulide/
