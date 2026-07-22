@@ -1,5 +1,6 @@
 #include "controller.h"
 #include "analog.h"
+#include "board.h"
 #include "controller_types.h"
 
 #include <stdbool.h>
@@ -108,7 +109,7 @@ static void Select_Quantity_State(void) {
           UI_Update_Quantity();
       }
 
-      if (confirm) {
+      if (next || confirm) {
           if (current_qty <= 0U) {
               Logger_Log(
                 LOG_ERROR,
@@ -148,7 +149,7 @@ static void Confirmation_State(void) {
 
       if (next || confirm) {      
           last_state = *current_state_ptr;
-          *current_state_ptr = STATE_SELECT_QUANTITY;
+          *current_state_ptr = STATE_PROCESSING;
 
           Logger_Log(
             LOG_INFO,
@@ -159,6 +160,24 @@ static void Confirmation_State(void) {
       }
 
       Cancel(cancel);
+  }
+}
+
+static void Processing_State(void) {
+  // When progress/timer finishes:
+  if (Passenger_CommitPurchase()) {
+      const char *ticket_code = Passenger_GetTicketCode();
+      
+      // Log ticket over UART per task requirements
+      Logger_Log(LOG_INFO, ticket_code);
+
+      *current_state_ptr = STATE_TICKET_ISSUED;
+      
+      UI_SetLed(&led.processing);
+      
+  } else {
+      // Trigger Out-of-Stock Error E02
+      UI_SetPage(UI_PAGE_OUT_OF_STOCK);
   }
 }
 
@@ -177,6 +196,9 @@ void Controller_SetState(controller_state_t current_state) {
     
     case STATE_CONFIRMATION:
         Confirmation_State();
+      break;
+    case STATE_PROCESSING:
+        Processing_State();
       break;
     default:
         Idle_State();

@@ -2,6 +2,7 @@
 #define UI_H
 
 #include "controller_types.h"
+#include "led.h"
 #include <stdint.h>
 
 typedef enum
@@ -22,7 +23,9 @@ typedef enum
 
     UI_PAGE_ERROR,
 
-    UI_PAGE_QUANTITY_NOT_VALID
+    UI_PAGE_QUANTITY_NOT_VALID,
+
+    UI_PAGE_OUT_OF_STOCK
 
 } ui_page_t;
 
@@ -35,5 +38,7 @@ void UI_Update_Quantity(void);
 void UI_Update_Destination(void);
 
 void UI_Update_Summarize(void);
+
+void UI_SetLed(led_t * led);
 
 #endif

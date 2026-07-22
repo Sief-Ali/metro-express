@@ -201,6 +201,12 @@ static void UI_Error(ui_page_t error_page) {
         LCD_SetCursor(&lcd_display, 1, 1);
         LCD_PrintString(&lcd_display, "Valid Quantity");
       break;
+    case UI_PAGE_OUT_OF_STOCK:
+        LCD_SetCursor(&lcd_display, 0, 0);
+        LCD_PrintString(&lcd_display, "Ticket Out");
+        LCD_SetCursor(&lcd_display, 1, 1);
+        LCD_PrintString(&lcd_display, "Of Stuck");
+      break;
     default:
         LCD_SetCursor(&lcd_display, 0, 0);
         LCD_PrintString(&lcd_display, "Error Accord");
@@ -224,6 +230,9 @@ void UI_SetPage(ui_page_t page) {
       break;
     case UI_PAGE_QUANTITY_NOT_VALID:
         UI_Error(UI_PAGE_QUANTITY_NOT_VALID);
+      break;
+    case UI_PAGE_OUT_OF_STOCK:
+        UI_Error(UI_PAGE_OUT_OF_STOCK);
       break;
     case UI_PAGE_CONFIRMATION:
         UI_Confirmation();
@@ -262,4 +271,8 @@ void UI_Update_Page(volatile controller_state_t * current_state) {
   }
 
   UI_SetPage(target_page);
+}
+
+void UI_SetLed(led_t * led) {
+  setLedOn(led);
 }
