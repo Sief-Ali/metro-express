@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <util/delay.h>
 
 #include "app_types.h"
 #include "logger.h"
@@ -168,12 +169,16 @@ static void Processing_State(void) {
   if (Passenger_CommitPurchase()) {
       const char *ticket_code = Passenger_GetTicketCode();
       
-      // Log ticket over UART per task requirements
+      UI_SetLed(&led.processing);
+
+      //for testing only simulate ticket printing process
+      _delay_ms(1500);
+
+      // Log ticket over UART after processing ticket printing process
       Logger_Log(LOG_INFO, ticket_code);
 
       *current_state_ptr = STATE_TICKET_ISSUED;
       
-      UI_SetLed(&led.processing);
       
   } else {
       // Trigger Out-of-Stock Error E02

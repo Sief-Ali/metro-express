@@ -3,7 +3,6 @@
 
 #include "controller_types.h"
 #include "led.h"
-#include <stdint.h>
 
 typedef enum
 {
