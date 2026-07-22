@@ -187,14 +187,14 @@ static void UI_Confirmation(void) {
   setLedOn(&led.ready);
 }
 
-static void UI_Error(ui_page_t error_page) {
+static void UI_Popup(ui_page_t popup_page) {
   LCD_Init(&lcd_display);
 
   setLedOn(&led.error);
   
   LCD_Clear(&lcd_display);
 
-  switch (error_page) {
+  switch (popup_page) {
     case UI_PAGE_QUANTITY_NOT_VALID:
         LCD_SetCursor(&lcd_display, 0, 0);
         LCD_PrintString(&lcd_display, "Error: Select");
@@ -206,6 +206,10 @@ static void UI_Error(ui_page_t error_page) {
         LCD_PrintString(&lcd_display, "Ticket Out");
         LCD_SetCursor(&lcd_display, 1, 1);
         LCD_PrintString(&lcd_display, "Of Stuck");
+      break;
+    case UI_PAGE_CANCELLED:
+        LCD_SetCursor(&lcd_display, 0, 0);
+        LCD_PrintString(&lcd_display, "Purchase Cancelled");
       break;
     default:
         LCD_SetCursor(&lcd_display, 0, 0);
@@ -245,10 +249,13 @@ void UI_SetPage(ui_page_t page) {
         UI_Select_Quantity();
       break;
     case UI_PAGE_QUANTITY_NOT_VALID:
-        UI_Error(UI_PAGE_QUANTITY_NOT_VALID);
+        UI_Popup(UI_PAGE_QUANTITY_NOT_VALID);
       break;
     case UI_PAGE_OUT_OF_STOCK:
-        UI_Error(UI_PAGE_OUT_OF_STOCK);
+        UI_Popup(UI_PAGE_OUT_OF_STOCK);
+      break;
+    case UI_PAGE_CANCELLED:
+        UI_Popup(UI_PAGE_CANCELLED);
       break;
     case UI_PAGE_CONFIRMATION:
         UI_Confirmation();

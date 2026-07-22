@@ -42,6 +42,8 @@ static void Cancel(bool cancel) {
           LOG_INFO,
           "[0x00]:Cancel back to ideal");
 
+        UI_SetPage(UI_PAGE_CANCELLED);
+
         clear_flags();
     }
 }
