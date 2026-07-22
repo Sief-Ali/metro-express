@@ -44,12 +44,12 @@ static void UI_Set_Quantity(uint8_t qty) {
   /* Center of a 16x2 LCD:
    * "Qty. :" = 7 chars
    * (16 - 7) = 9 column left
-   * number takes one column at 8 and space one column at 7 before it
+   * number takes one column at 7
    */
   LCD_SetCursor(&lcd_display, 1, 0);
   LCD_PrintString(&lcd_display, "Qty. :");
 
-  LCD_SetCursor(&lcd_display, 1, 8);
+  LCD_SetCursor(&lcd_display, 1, 7);
   LCD_PrintString(&lcd_display, Str(qty));
 }
 
@@ -58,12 +58,16 @@ static void UI_Set_Destination(const char* destination_name) {
   /* Center of a 16x2 LCD:
    * "Dest.:" = 7 chars
    * (16 - 7) = 9 column left
-   * destination name start column at 8 and space one column at 7 before it
+   * destination name start column at 7 and clear the field first
    */
   LCD_SetCursor(&lcd_display, 1, 0);
   LCD_PrintString(&lcd_display, "Dest.:");
-
-  LCD_SetCursor(&lcd_display, 1, 8);
+  
+  //clear
+  LCD_SetCursor(&lcd_display, 1, 7);
+  LCD_PrintString(&lcd_display, "        ");
+  // print destination
+  LCD_SetCursor(&lcd_display, 1, 7);
   LCD_PrintString(&lcd_display, destination_name);
 }
 
@@ -72,15 +76,19 @@ static void UI_Set_Summarize(uint8_t qty, const char* destination_name) {
   // destination
   LCD_SetCursor(&lcd_display, 0, 0);
   LCD_PrintString(&lcd_display, "Dest.:");
- 
-  LCD_SetCursor(&lcd_display, 0, 8);
+  
+  //clear
+  LCD_SetCursor(&lcd_display, 0, 7);
+  LCD_PrintString(&lcd_display, "        ");
+  // print destination
+  LCD_SetCursor(&lcd_display, 0, 7);
   LCD_PrintString(&lcd_display, destination_name);
   
   // qty
   LCD_SetCursor(&lcd_display, 1, 0);
   LCD_PrintString(&lcd_display, "Qty. :");
 
-  LCD_SetCursor(&lcd_display, 1, 8);
+  LCD_SetCursor(&lcd_display, 1, 7);
   LCD_PrintString(&lcd_display, Str(qty));
 }
 
