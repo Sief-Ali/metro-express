@@ -109,7 +109,7 @@ static void Select_Quantity_State(void) {
           UI_Update_Quantity(current_quantity);
       }
 
-      if (next || confirm) {
+      if (confirm) {
           if (current_quantity <= 0U) {
               Logger_Log(
                 LOG_ERROR,
@@ -122,11 +122,16 @@ static void Select_Quantity_State(void) {
           }
           
           last_state = *current_state_ptr;
-          *current_state_ptr = STATE_SELECT_QUANTITY;
+          *current_state_ptr = STATE_CONFIRMATION;
 
           Logger_Log(
             LOG_INFO,
-            "[0x00]:NEXT Go No Where");
+            "[0x00]:NEXT Go To Confirmation");
+
+          const char* dest = Passenger_GetSelectedDestinationName();
+
+          UI_Update_Summarize(last_quantity, dest);
+
 
           Passenger_SetQuantity(current_quantity);
 
@@ -137,7 +142,30 @@ static void Select_Quantity_State(void) {
       Cancel(cancel);
   }
 }
-  
+
+static void Confirmation_State(void) {
+  if (extint_flags_ptr != NULL) {
+      bool next = check_and_clear_flag(&extint_flags_ptr->next_pressed);
+      bool confirm = check_and_clear_flag(&extint_flags_ptr->confirm_pressed);
+
+      bool cancel = check_and_clear_flag(&extint_flags_ptr->cancel_pressed);
+
+      if (next || confirm) {      
+          last_state = *current_state_ptr;
+          *current_state_ptr = STATE_SELECT_QUANTITY;
+
+          Logger_Log(
+            LOG_INFO,
+            "[0x00]:NEXT Go To Processing");
+
+          clear_flags();
+          return;
+      }
+
+      Cancel(cancel);
+  }
+}
+
 // main controls
 void Controller_SetState(controller_state_t current_state) {
   switch (current_state) {
@@ -149,6 +177,10 @@ void Controller_SetState(controller_state_t current_state) {
       break;
     case STATE_SELECT_QUANTITY:
         Select_Quantity_State();
+      break;
+    
+    case STATE_CONFIRMATION:
+        Confirmation_State();
       break;
     default:
         Idle_State();

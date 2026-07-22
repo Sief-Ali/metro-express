@@ -12,6 +12,9 @@
 static controller_state_t last_state;
 static ui_page_t current_page;
 
+static volatile uint8_t last_quantity;
+static volatile char* last_destination;
+
 /*
   TODO: Refactor to adhere to DRY principles and use a component-based design with dedicated page title fields, rather than hardcoding UI text
 */
@@ -46,7 +49,7 @@ static void UI_Set_Quantity(uint8_t quantity) {
    * number takes one column at 9 and space one column at 7 and 8 before number
    */
   LCD_SetCursor(&lcd_display, 1, 0);
-  LCD_PrintString(&lcd_display, "Quant.:");
+  LCD_PrintString(&lcd_display, "Qty.:");
 
   LCD_SetCursor(&lcd_display, 1, 9);
   LCD_PrintString(&lcd_display, Str(quantity));
@@ -66,6 +69,23 @@ static void UI_Set_Destination(const char* destination_name) {
   LCD_PrintString(&lcd_display, destination_name);
 }
 
+static void UI_Set_Summarize(uint8_t qty, const char* destination_name) {
+
+  // destination
+  LCD_SetCursor(&lcd_display, 0, 0);
+  LCD_PrintString(&lcd_display, "Dest.:");
+ 
+  LCD_SetCursor(&lcd_display, 0, 8);
+  LCD_PrintString(&lcd_display, destination_name);
+  
+  // quantity
+  LCD_SetCursor(&lcd_display, 1, 0);
+  LCD_PrintString(&lcd_display, "Qty.:");
+
+  LCD_SetCursor(&lcd_display, 1, 9);
+  LCD_PrintString(&lcd_display, Str(qty));
+}
+
 // UI components updater
 
 void UI_Update_Quantity(uint8_t quantity) {
@@ -83,6 +103,15 @@ void UI_Update_Destination(const char* destination_name) {
   if (current_page != UI_PAGE_SELECT_DESTINATION) return;
 
   UI_Set_Destination(destination_name);
+}
+
+void UI_Update_Summarize(uint8_t qty, const char* destination_name) { 
+  last_quantity = qty;
+  last_destination = destination_name;
+  
+  if (current_page != UI_PAGE_CONFIRMATION) return;
+
+  UI_Set_Summarize(last_quantity, last_destination);
 }
 
 // state handlers
@@ -136,6 +165,16 @@ static void UI_Select_Quantity(void) {
   setLedOn(&led.ready);
 }
 
+static void UI_Confirmation(void) {
+  LCD_Init(&lcd_display);
+
+  LCD_Clear(&lcd_display);
+
+  UI_Set_Summarize(last_quantity, last_destination);
+
+  setLedOn(&led.ready);
+}
+
 static void UI_Error(ui_page_t error_page) {
   LCD_Init(&lcd_display);
 
@@ -174,6 +213,9 @@ void UI_SetPage(ui_page_t page) {
     case UI_PAGE_QUANTITY_NOT_VALID:
         UI_Error(UI_PAGE_QUANTITY_NOT_VALID);
       break;
+    case UI_PAGE_CONFIRMATION:
+        UI_Confirmation();
+      break;
     default:
         UI_Idle();
       break;
@@ -198,6 +240,9 @@ void UI_Update_Page(volatile controller_state_t * current_state) {
       break;
     case STATE_SELECT_QUANTITY:
         target_page = UI_PAGE_SELECT_QUANTITY;
+      break;
+    case STATE_CONFIRMATION:
+        target_page = UI_PAGE_CONFIRMATION;
       break;
     default:
         target_page = UI_PAGE_IDLE;

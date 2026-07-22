@@ -30,7 +30,7 @@
 
 <item itemtype="Ground" CircId="Ground-79" mainComp="false" Show_id="false" Show_Val="false" Pos="284,236" rotation="0" hflip="1" vflip="1" label="Ground-79" idLabPos="-16,8" labelrot="0" valLabPos="-16,20" valLabRot="0" />
 
-<item itemtype="Potentiometer" CircId="Potentiometer-80" mainComp="false" Show_id="false" Show_Val="false" Pos="284,36" rotation="90" hflip="1" vflip="1" label="Potentiometer-80" idLabPos="-16,-40" labelrot="0" valLabPos="15,-20" valLabRot="0" Resistance="10 kΩ" Value_Ohm="0 Ω" Slider="false" Scale="1" />
+<item itemtype="Potentiometer" CircId="Potentiometer-80" mainComp="false" Show_id="false" Show_Val="false" Pos="284,36" rotation="90" hflip="1" vflip="1" label="Potentiometer-80" idLabPos="-16,-40" labelrot="0" valLabPos="15,-20" valLabRot="0" Resistance="10 kΩ" Value_Ohm="2890 Ω" Slider="false" Scale="1" />
 
 <item itemtype="Rail" CircId="Rail-85" mainComp="false" ShowProp="Voltage" Show_id="false" Show_Val="true" Pos="284,-44" rotation="90" hflip="1" vflip="1" label="Rail-85" idLabPos="-5,-10" labelrot="-90" valLabPos="-12,6" valLabRot="-90" Voltage="5 V" />
 
@@ -134,8 +134,6 @@
 
 <item itemtype="Connector" uid="Connector-213" startpinid="Node-90-2" endpinid="Node-89-0" pointList="284,196,284,204" />
 
-<item itemtype="Connector" uid="Connector-214" startpinid="Push-68-pinP0" endpinid="Node-91-1" pointList="20,100,-4,100,-4,188,284,188" />
-
 <item itemtype="Connector" uid="Connector-215" startpinid="Node-84-2" endpinid="Node-91-0" pointList="284,140,284,188" />
 
 <item itemtype="Connector" uid="Connector-216" startpinid="Node-91-2" endpinid="Node-90-0" pointList="284,188,284,196" />
@@ -165,5 +163,7 @@
 <item itemtype="Connector" uid="Connector-249" startpinid="Aip31068_i2c-88PinSCL" endpinid="Node-113-0" pointList="404,156,404,172,372,172" />
 
 <item itemtype="Connector" uid="Connector-250" startpinid="Node-113-2" endpinid="mega32-6-PORTC0" pointList="372,172,164,172,164,124,156,124" />
+
+<item itemtype="Connector" uid="Connector-214" startpinid="Push-68-pinP0" endpinid="Node-91-1" pointList="20,100,-4,100,-4,188,284,188" />
 
 </circuit>

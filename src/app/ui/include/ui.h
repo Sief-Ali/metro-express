@@ -34,4 +34,6 @@ void UI_Update_Quantity(uint8_t quantity);
 
 void UI_Update_Destination(const char* destination_name);
 
+void UI_Update_Summarize(uint8_t qty, const char* destination_name);
+
 #endif
