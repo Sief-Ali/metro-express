@@ -1,0 +1,56 @@
+src/app/logger/include/logger.h
+  s_f50b8639776280::t_5275aefd636a16 12,15,20
+src/app/include/app_types.h
+  s_f50b8639776280::t_66491399099fbe 6,16
+src/app/controller/controller.c
+  s_f50b8639776280::t_530d296845b556 38,74
+  s_f50b8639776280::t_4014b30afad867 17,22,29,43,49,57,63,83-85,87,110,142,192,218,246,268-271,299,309,324
+src/app/controller/include/controller_types.h
+  s_f50b8639776280::t_4014b30afad867 4,23
+src/HAL/analog/analog.c
+  s_f50b8639776280::t_5275aefd636a16 34-35
+src/HAL/analog/include/analog.h
+  s_f50b8639776280::t_5275aefd636a16 9,12,15,18,21
+src/MCAL/adc/include/adc.h
+  s_f50b8639776280::t_5275aefd636a16 56,58
+src/app/controller/include/controller.h
+  s_f50b8639776280::t_530d296845b556 7,10,13
+src/app/passenger/passenger.c
+  s_f50b8639776280::t_4014b30afad867 8-10,25,65,67,75,81,86,92,97,102,110,145,150,165,171
+src/utils/include/str.h
+  s_f50b8639776280::t_5275aefd636a16 7-8,14
+  s_f50b8639776280::t_81333ed731d125 9
+src/app/include/app.h
+  s_f50b8639776280::t_66491399099fbe 4,7,10
+src/app/ui/include/ui.h
+  s_f50b8639776280::t_530d296845b556 31,34,37,40,43,46
+src/app/main.c
+  s_f50b8639776280::t_66491399099fbe 13,21,28,49
+src/app/ui/ui.c
+  s_f50b8639776280::t_530d296845b556 10,17,110,223,227-229,233,236,295-296
+  s_f50b8639776280::t_537656bc7a0d1f 14,19-21,30,40-42,44,59,78,100-102,104,118,127,135-137,139,155,175,193,204,241,258,292,326,329
+src/app/passenger/passenger_types.c
+  s_f50b8639776280::t_4014b30afad867 3,17
+src/app/app.c
+  s_f50b8639776280::t_774d1e4d6ee34b 15,18,21,26,31,36,69,78
+src/app/logger/logger.c
+  s_f50b8639776280::t_4014b30afad867 7,16,30
+  s_f50b8639776280::t_5275aefd636a16 35-39,50
+  s_f50b8639776280::t_81333ed731d125 3-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "b161596b61e9c0b1a1cefeb4efaab24d6bd3ade7",
+  "prompts": {},
+  "sessions": {
+    "s_f50b8639776280": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f8e68-2639-7b33-92c8-edc3f7341089",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Sief Ali <sief4136@gmail.com>"
+    }
+  }
+}
