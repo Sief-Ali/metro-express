@@ -1,5 +1,9 @@
 # MetroExpress Ticket Machine
 
+<p align="center">
+  <img src="./.simulide/main-v1.png" alt="MetroExpress SimulIDE Circuit" width="900">
+</p>
+
 MetroExpress is a modular embedded firmware project developed for the **Digital Egypt Cubs Initiative (DECI) – Embedded Systems Level 5**. It simulates a self-service railway ticket machine running on an **ATmega32** microcontroller using **SimulIDE**.
 
 The application is built on top of the provided MCAL drivers and follows a finite state machine (FSM) architecture with separate modules for application control, passenger interaction, and event logging.
@@ -23,7 +27,7 @@ The application is built on top of the provided MCAL drivers and follows a finit
 ## Clone the Repository
 
 ```bash
-git clone https://github.com/Sief-Ali/metro-express.git
+git clone --depth 1 https://github.com/Sief-Ali/metro-express.git
 cd metro-express
 ```
 
