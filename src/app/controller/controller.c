@@ -236,16 +236,21 @@ static void Confirmation_State(void) {
 /* Commits stock, emits the ticket code, and moves to the result state. */
 static void Processing_State(void) {
   // When progress/timer finishes:
-  if (Passenger_CommitPurchase()) {
-      const char *ticket_code = Passenger_GetTicketCode();
-      
+  if (Passenger_CommitPurchase()) {      
       UI_SetLed(&led.processing);
 
       //for testing only simulate ticket printing process
       _delay_ms(1500);
 
-      // Log ticket over UART after processing ticket printing process
-      Logger_Log(LOG_INFO, ticket_code);
+      char message[80] = "purchase";
+
+      // Build: "purchase dest=Tanta qty=2 code=TAN0007#2"
+      Str_CatKV(message, "dest", Passenger_GetSelectedDestinationName(), sizeof(message));
+      Str_CatKVNum(message, "qty", Passenger_GetQuantity(), sizeof(message));
+      Str_CatKV(message, "code", Passenger_GetTicketCode(), sizeof(message));
+  
+      // Pass directly to logger
+      Logger_Log(LOG_EVENT, message);
 
       *current_state_ptr = STATE_TICKET_ISSUED;
       
@@ -274,15 +279,8 @@ static void Ticket_Issued_State(void) {
           last_state = *current_state_ptr;
           *current_state_ptr = STATE_IDLE;
 
-          char message[80] = "purchase";
-
-          // Build: "purchase dest=Tanta qty=2 code=TAN0007#2"
-          Str_CatKV(message, "dest", Passenger_GetSelectedDestinationName(), sizeof(message));
-          Str_CatKVNum(message, "qty", Passenger_GetQuantity(), sizeof(message));
-          Str_CatKV(message, "code", Passenger_GetTicketCode(), sizeof(message));
-      
-          // Pass directly to logger
-          Logger_Log(LOG_EVENT, message);
+          // Log ticket over UART after processing ticket printing process
+          Logger_Log(LOG_INFO, "Back to idle");
 
           clear_flags();
           return;
