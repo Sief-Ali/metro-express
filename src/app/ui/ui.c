@@ -235,7 +235,7 @@ static void UI_Popup(ui_page_t popup_page) {
   }
   force_redraw = true;
 
-  _delay_ms(1500);
+  for (volatile uint32_t i=0;i<40000;i++);;
 }
 
 /* Draws the issued ticket page with the generated ticket code. */

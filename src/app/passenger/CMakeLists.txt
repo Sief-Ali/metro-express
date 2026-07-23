@@ -17,4 +17,5 @@ target_link_libraries(passenger
         controller
         board
         btn
+        utils
 )

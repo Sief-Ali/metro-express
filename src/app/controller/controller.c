@@ -70,7 +70,7 @@ static void Handle_Timeout(void) {
   *current_state_ptr = STATE_IDLE;
 
   // Timeout log: "timeout from=STATE_SELECT_DESTINATION next=STATE_IDLE"
-  char timeout_msg[64] = "timeout from=";
+  char timeout_msg[48] = "timeout from=";
   Str_Cat(timeout_msg, controller_state_names[last_state], sizeof(timeout_msg));
   Str_Cat(timeout_msg, " next=STATE_IDLE", sizeof(timeout_msg));
 
@@ -90,7 +90,7 @@ static void Cancel(bool cancel) {
       *current_state_ptr = STATE_IDLE;
 
       // Cancel log: "Cancel from=STATE_SELECT_QUANTITY"
-      char cancel_msg[64] = "Cancel from=";
+      char cancel_msg[32] = "Cancel from=";
       Str_Cat(cancel_msg, controller_state_names[last_state], sizeof(cancel_msg));
 
       Logger_Log(LOG_EVENT, cancel_msg);
@@ -139,7 +139,7 @@ static void Select_Destination_State(void) {
 
           const char *dest = Passenger_GetSelectedDestinationName();
 
-          char message[64] = "choose_destination";
+          char message[32] = "choose_destination";
 
           // Dynamically appends " dest=<CurrentDestination>" (e.g. "choose_destination dest=Cairo")
           Str_CatKV(message, "dest", dest, sizeof(message));
@@ -181,7 +181,7 @@ static void Select_Quantity_State(void) {
       if (next || confirm) {
           Controller_ResetInactivityTimer(); // Resets timer back to 0ms
           if (current_qty <= 0U) {
-              char message[64] = "[ERR] code=E01 msg=invalid_qty";
+              char message[32] = "[ERR] code=E01 msg=invalid_qty";
 
               const char* qty = Str_U8(Passenger_GetQuantity());
         
@@ -240,9 +240,9 @@ static void Processing_State(void) {
       UI_SetLed(&led.processing);
 
       //for testing only simulate ticket printing process
-      _delay_ms(1500);
+      for (volatile uint32_t i=0;i<40000;i++);;
 
-      char message[80] = "purchase";
+      char message[48] = "purchase";
 
       // Build: "purchase dest=Tanta qty=2 code=TAN0007#2"
       Str_CatKV(message, "dest", Passenger_GetSelectedDestinationName(), sizeof(message));
@@ -251,6 +251,8 @@ static void Processing_State(void) {
   
       // Pass directly to logger
       Logger_Log(LOG_EVENT, message);
+
+      Controller_ResetInactivityTimer();
 
       *current_state_ptr = STATE_TICKET_ISSUED;
       
@@ -335,7 +337,7 @@ void Controller_Update(volatile controller_state_t * current_state, volatile ext
   extint_flags_ptr = flags;
 
   // Check for 15-second inactivity timeout across all active states
-  if (current_state != STATE_IDLE && inactivity_counter_ms >= INACTIVITY_TIMEOUT_MS) {
+  if (*current_state != STATE_IDLE && inactivity_counter_ms >= INACTIVITY_TIMEOUT_MS) {
     Handle_Timeout();
     return;
   }
