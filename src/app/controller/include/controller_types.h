@@ -13,11 +13,7 @@ typedef enum
 
     STATE_PROCESSING,
 
-    STATE_TICKET_ISSUED,
-
-    STATE_CANCELLED,
-
-    STATE_ERROR
+    STATE_TICKET_ISSUED
 
 } controller_state_t;
 
