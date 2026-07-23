@@ -6,11 +6,13 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 #include <util/delay.h>
 
 #include "app_types.h"
 #include "logger.h"
 #include "passenger.h"
+#include "str.h"
 #include "timer_service.h"
 #include "ui.h"
 
@@ -60,6 +62,24 @@ void Controller_StopInactivityTimer(void) {
     inactivity_counter_ms = 0;
 }
 
+static void Handle_Timeout(void) {
+  Passenger_Reset();
+  Controller_StopInactivityTimer();
+
+  last_state = *current_state_ptr;
+  *current_state_ptr = STATE_IDLE;
+
+  // Timeout log: "timeout from=STATE_SELECT_DESTINATION next=STATE_IDLE"
+  char timeout_msg[64] = "timeout from=";
+  Str_Cat(timeout_msg, controller_state_names[last_state], sizeof(timeout_msg));
+  Str_Cat(timeout_msg, " next=STATE_IDLE", sizeof(timeout_msg));
+
+  Logger_Log(LOG_EVENT, timeout_msg);
+
+  UI_SetPage(UI_PAGE_IDLE);
+  clear_flags();
+}
+
 /* Handles a consumed cancel request by resetting the active transaction. */
 static void Cancel(bool cancel) {
   if (cancel) {
@@ -68,14 +88,14 @@ static void Cancel(bool cancel) {
 
       last_state = *current_state_ptr;
       *current_state_ptr = STATE_IDLE;
-      
-      Logger_Log(
-        LOG_INFO,
-        "[0x00]:Cancel back to Idle");
+
+      // Cancel log: "Cancel from=STATE_SELECT_QUANTITY"
+      char cancel_msg[64] = "Cancel from=";
+      Str_Cat(cancel_msg, controller_state_names[last_state], sizeof(cancel_msg));
+
+      Logger_Log(LOG_EVENT, cancel_msg);
 
       UI_SetPage(UI_PAGE_CANCELLED);
-
-
       clear_flags();
   }
 }
@@ -98,10 +118,6 @@ static void Idle_State(void) {
           last_state = *current_state_ptr;
           *current_state_ptr = STATE_SELECT_DESTINATION;
 
-          Logger_Log(
-            LOG_INFO,
-            "[0x00]:WAKE UP Go Select Destination");
-
           clear_flags();
       }
   }
@@ -120,6 +136,15 @@ static void Select_Destination_State(void) {
 
           Passenger_NextDestination();
           UI_Update_Destination();
+
+          const char *dest = Passenger_GetSelectedDestinationName();
+
+          char message[64] = "choose_destination";
+
+          // Dynamically appends " dest=<CurrentDestination>" (e.g. "choose_destination dest=Cairo")
+          Str_CatKV(message, "dest", dest, sizeof(message));
+
+          Logger_Log(LOG_EVENT, message);
       }
 
       if (confirm) {
@@ -127,10 +152,6 @@ static void Select_Destination_State(void) {
 
           last_state = *current_state_ptr;
           *current_state_ptr = STATE_SELECT_QUANTITY;
-
-          Logger_Log(
-            LOG_INFO,
-            "[0x00]:NEXT Go Select Quantity");
 
           clear_flags();
       }
@@ -160,9 +181,14 @@ static void Select_Quantity_State(void) {
       if (next || confirm) {
           Controller_ResetInactivityTimer(); // Resets timer back to 0ms
           if (current_qty <= 0U) {
-              Logger_Log(
-                LOG_ERROR,
-                "[0x00]:Choose qty. Quantity valid between 1 and 5");
+              char message[64] = "[ERR] code=E01 msg=invalid_qty";
+
+              const char* qty = Str_U8(Passenger_GetQuantity());
+        
+              Str_CatKV(message, "value", qty, sizeof(message));
+        
+              Logger_Log(LOG_EVENT, message);
+
               UI_SetPage(UI_PAGE_QUANTITY_NOT_VALID);
 
               clear_flags();
@@ -171,10 +197,6 @@ static void Select_Quantity_State(void) {
           
           last_state = *current_state_ptr;
           *current_state_ptr = STATE_CONFIRMATION;
-
-          Logger_Log(
-            LOG_INFO,
-            "[0x00]:NEXT Go To Confirmation");
 
           UI_Update_Summarize();
 
@@ -203,10 +225,6 @@ static void Confirmation_State(void) {
           last_state = *current_state_ptr;
           *current_state_ptr = STATE_PROCESSING;
 
-          Logger_Log(
-            LOG_INFO,
-            "[0x00]:NEXT Go To Processing");
-
           clear_flags();
           return;
       }
@@ -231,11 +249,12 @@ static void Processing_State(void) {
 
       *current_state_ptr = STATE_TICKET_ISSUED;
       
-      Logger_Log(
-        LOG_INFO,
-        "[0x00]:Go to Ticket Issued");
-      
   } else {
+
+      char message[32] = "[ERR] code=E02 msg=out_of_stock";
+
+      Logger_Log(LOG_EVENT, message);
+
       // Trigger Out-of-Stock Error E02
       UI_SetPage(UI_PAGE_OUT_OF_STOCK);
 
@@ -255,9 +274,15 @@ static void Ticket_Issued_State(void) {
           last_state = *current_state_ptr;
           *current_state_ptr = STATE_IDLE;
 
-          Logger_Log(
-            LOG_INFO,
-            "[0x00]:Back To Idle");
+          char message[80] = "purchase";
+
+          // Build: "purchase dest=Tanta qty=2 code=TAN0007#2"
+          Str_CatKV(message, "dest", Passenger_GetSelectedDestinationName(), sizeof(message));
+          Str_CatKVNum(message, "qty", Passenger_GetQuantity(), sizeof(message));
+          Str_CatKV(message, "code", Passenger_GetTicketCode(), sizeof(message));
+      
+          // Pass directly to logger
+          Logger_Log(LOG_EVENT, message);
 
           clear_flags();
           return;
@@ -311,13 +336,10 @@ void Controller_Update(volatile controller_state_t * current_state, volatile ext
   current_state_ptr = current_state;
   extint_flags_ptr = flags;
 
-  if (inactivity_counter_ms >= INACTIVITY_TIMEOUT_MS) {
-      Logger_Log(LOG_INFO, "[0x00]:Timeout 15s reached -> Returning to IDLE");
-      
-      Passenger_Reset();
-      Controller_StopInactivityTimer();
-      
-      *current_state_ptr = STATE_IDLE;
+  // Check for 15-second inactivity timeout across all active states
+  if (current_state != STATE_IDLE && inactivity_counter_ms >= INACTIVITY_TIMEOUT_MS) {
+    Handle_Timeout();
+    return;
   }
 
   Controller_SetState(*current_state);

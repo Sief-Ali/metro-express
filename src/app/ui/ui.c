@@ -53,7 +53,7 @@ static void UI_Set_Quantity(uint8_t qty) {
   LCD_PrintString(&lcd_display, "Qty. :");
 
   LCD_SetCursor(&lcd_display, 1, 7);
-  LCD_PrintString(&lcd_display, Str(qty));
+  LCD_PrintString(&lcd_display, Str_U8(qty));
 }
 
 /* Writes the selected destination field on the second LCD row. */
@@ -94,7 +94,7 @@ static void UI_Set_Summarize(uint8_t qty, const char* destination_name) {
   LCD_PrintString(&lcd_display, "Qty. :");
 
   LCD_SetCursor(&lcd_display, 1, 7);
-  LCD_PrintString(&lcd_display, Str(qty));
+  LCD_PrintString(&lcd_display, Str_U8(qty));
 }
 
 /* -------------------------------------------------------------------------- */

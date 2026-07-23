@@ -1,5 +1,6 @@
 add_library(controller STATIC
     controller.c
+    controller_types.c
     include/controller.h
     include/controller_types.h
 )
@@ -19,5 +20,6 @@ target_link_libraries(controller
         passenger
         board
         timer_service
+        utils
 )
  

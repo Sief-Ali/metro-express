@@ -4,13 +4,13 @@
 
 #include "serial.h"
 
-/* UART prefixes used by the project logger for each severity level. */
-static const char *log_level_prefix[] =
+/* UART prefixes used by the project logger for each severity tag. */
+static const char *log_tag_prefix[] =
 {
-    [LOG_DEBUG]   = "[D]",
-    [LOG_INFO]    = "[I]",
-    [LOG_WARNING] = "[W]",
-    [LOG_ERROR]   = "[E]"
+    [LOG_BOOT]    = "[BOOT]",
+    [LOG_EVENT]   = "[EVT]",
+    [LOG_INFO]   = "[INFO]",
+    [LOG_ERROR] = "[ERROR]",
 };
 
 /* Initializes the serial layer used by the logger. */
@@ -21,28 +21,25 @@ void Logger_Init(void)
 
 /* 
   logging style:
-    [timestamp]:[level/type]:[error_code]:[message]
+    [TAG]:[message]
   example: 
-    [00000000]:[I]:[0x00]:SYS_INIT_OK
-    [00000000]:[E]:[0x12]:ADC_TIMEOUT
+    [BOOT]: System=boot
 
 */
 /* Writes one formatted log line to the serial maintenance terminal. */
 void Logger_Log(
-    log_level_t level,
+    log_tag_t tag,
     const char *message)
 {
-    if ((level > LOG_ERROR) || (message == NULL))
+    if ((tag > LOG_ERROR) || (message == NULL))
     {
         return;
     }
 
-    // timestamp placeholder
-    Serial_Write("[00000000]:");
-    // logs level / type D:Debug I:Info W:Warning E:Error
-    Serial_Write(log_level_prefix[level]);
+    // logs tag / type D:Debug I:Info W:Warning E:Error
+    Serial_Write(log_tag_prefix[tag]);
+    Serial_Write(": ");
 
-    Serial_Write(":");
     // finally the message contains code:message
     Serial_Write(message);
 

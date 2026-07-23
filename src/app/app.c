@@ -61,8 +61,8 @@ void APP_Init(void)
     Controller_Init(&current_state);
 
     Logger_Log(
-      LOG_INFO,
-      "[0x00]:SYS_INIT_OK");
+      LOG_BOOT,
+      "System Ready");
 
 }
 
