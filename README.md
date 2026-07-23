@@ -22,9 +22,15 @@ The application is built on top of the provided MCAL drivers and follows a finit
 
 ---
 
-# Getting Started
+## License
 
-## Clone the Repository
+This project was developed as part of the **Digital Egypt Cubs Initiative (DECI)** educational program and is intended for learning and demonstration purposes.
+
+---
+
+## Getting Started
+
+### Clone the Repository
 
 ```bash
 git clone --depth 1 https://github.com/Sief-Ali/metro-express.git
@@ -39,7 +45,7 @@ git pull origin main
 
 ---
 
-# Prerequisites
+## Prerequisites
 
 Install the following tools before building:
 
@@ -49,7 +55,7 @@ Install the following tools before building:
 
 ---
 
-# Building the Project
+## Building the Project
 
 Configure the project:
 
@@ -73,7 +79,7 @@ build/src/metro-express.hex
 
 ---
 
-# Running the Simulation
+## Running the Simulation
 
 1. Launch **SimulIDE**.
 2. Open the project:
@@ -92,7 +98,7 @@ build/src/metro-express.hex
 
 ---
 
-# Project Structure
+## Project Structure
 
 ```text
 .
@@ -107,21 +113,3 @@ build/src/metro-express.hex
 ├── .simulide/
 └── CMakeLists.txt
 ```
-
----
-
-# Documentation
-
-Project documentation can be found in the `docs/` directory and includes:
-
-- System Architecture
-- State Machine Design
-- Validation Report
-- UART Logs
-- Project README
-
----
-
-# License
-
-This project was developed as part of the **Digital Egypt Cubs Initiative (DECI)** educational program and is intended for learning and demonstration purposes.
