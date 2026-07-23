@@ -1,19 +1,58 @@
-# Building and Running
+# MetroExpress Ticket Machine
 
-## Prerequisites
+MetroExpress is a modular embedded firmware project developed for the **Digital Egypt Cubs Initiative (DECI) – Embedded Systems Level 5**. It simulates a self-service railway ticket machine running on an **ATmega32** microcontroller using **SimulIDE**.
 
+The application is built on top of the provided MCAL drivers and follows a finite state machine (FSM) architecture with separate modules for application control, passenger interaction, and event logging.
+
+## Features
+
+- Modular firmware architecture (App, Controller, Passenger, Logger)
+- Finite State Machine (FSM) implementation
+- Destination selection with LEDs
+- Ticket quantity selection using ADC
+- UART maintenance logging (9600 baud, 8N1)
+- Emergency cancellation using external interrupts
+- Inactivity timeout using hardware timers
+- SimulIDE simulation support
+- CMake-based build system
+
+---
+
+# Getting Started
+
+## Clone the Repository
+
+```bash
+git clone https://github.com/Sief-Ali/metro-express.git
+cd metro-express
+```
+
+If you already have the repository and want the latest changes:
+
+```bash
+git pull origin main
+```
+
+---
+
+# Prerequisites
+
+Install the following tools before building:
+
+- AVR-GCC Toolchain
 - CMake
-- AVR-GCC toolchain
 - SimulIDE
 
-## Build the Project
+---
+
+# Building the Project
 
 Configure the project:
 
 ```bash
 cmake \
-  -B build \
-  -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/avr-gcc.cmake
+    -B build \
+    -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/avr-gcc.cmake
 ```
 
 Build the firmware:
@@ -22,19 +61,63 @@ Build the firmware:
 cmake --build build
 ```
 
-## Run the Simulation
+The generated firmware will be located at:
 
-1. Ensure **SimulIDE** is installed.
-2. Open the simulation project:
+```text
+build/src/metro-express.hex
+```
+
+---
+
+# Running the Simulation
+
+1. Launch **SimulIDE**.
+2. Open the project:
 
 ```text
 .simulide/main-v1.sim1
 ```
 
-3. In SimulIDE, load the generated firmware:
+3. Load the generated firmware:
 
 ```text
 build/src/metro-express.hex
 ```
 
 4. Start the simulation.
+
+---
+
+# Project Structure
+
+```text
+.
+├── src/
+│   ├── app/
+│   ├── board/
+│   ├── hal/
+│   ├── mcal/
+│   └── utils/
+├── cmake/
+├── docs/
+├── .simulide/
+└── CMakeLists.txt
+```
+
+---
+
+# Documentation
+
+Project documentation can be found in the `docs/` directory and includes:
+
+- System Architecture
+- State Machine Design
+- Validation Report
+- UART Logs
+- Project README
+
+---
+
+# License
+
+This project was developed as part of the **Digital Egypt Cubs Initiative (DECI)** educational program and is intended for learning and demonstration purposes.
