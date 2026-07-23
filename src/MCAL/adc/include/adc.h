@@ -39,8 +39,6 @@ uint16_t ADC_Read(void);
 /* Auto Trigger                                                                */
 /* -------------------------------------------------------------------------- */
 
-void ADC_SetTrigger(adc_trigger_t trigger);
-
 void ADC_EnableAutoTrigger(adc_trigger_t trigger);
 
 void ADC_DisableAutoTrigger(void);
@@ -55,6 +53,6 @@ void ADC_EnableInterrupt(void);
 
 void ADC_DisableInterrupt(void);
 
-void ADC_ClearInterruptFlag(void);
+void ADC_ClearFlag(void);
 
 #endif /* ADC_DRIVER_H */

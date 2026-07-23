@@ -1,5 +1,6 @@
 #include "passenger_types.h"
 
+/* Display names and ticket codes for every supported destination. */
 extern const destination_info_t destination_info[DESTINATION_COUNT] = {
     [ALEXANDRIA]    = { .display_name = "Alex.",    .code = "ALX" },
     [CAIRO]         = { .display_name = "Cairo",    .code = "CAI" },

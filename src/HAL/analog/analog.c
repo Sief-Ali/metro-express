@@ -31,10 +31,8 @@ uint16_t Analog_ReadChannel(adc_input_t input)
 uint8_t Analog_Get_Quantity(void) {
   uint16_t pot_value = ADC_Read();
   
-  // Formula from diagram: quantity = (ADC * 6) / 1024
-  // Using 32-bit math to prevent overflow when (pot_value * 6) exceeds 65535
-  // uint32_t quantity = ((uint32_t)pot_value * 6U) / 1024U; //not used cuz bit shift is faster
-
+  // Formula from diagram: quantity = (ADC * 6) / 1024.
+  // The multiply is widened to 32 bits before scaling down.
   uint8_t quantity = (uint8_t)(((uint32_t)pot_value * 6U) >> 10);
   
   // Clamp values above 5

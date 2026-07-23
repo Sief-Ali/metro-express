@@ -1,6 +1,7 @@
 #ifndef CONTROLLER_TYPES_H
 #define CONTROLLER_TYPES_H
 
+/* Steps in the MetroExpress ticket-purchase state machine. */
 typedef enum
 {
     STATE_IDLE,

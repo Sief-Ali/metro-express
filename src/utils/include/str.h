@@ -4,9 +4,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-// Utility function to convert numbers to char[] automatically
-const char* Str(uint8_t value) {
-    static char buf[4]; // Static memory stays alive after the function returns
+/* Converts an 8-bit value to a decimal string backed by a static buffer. */
+static inline const char* Str(uint8_t value) {
+    static char buf[4];
     utoa(value, buf, 10);
     return buf;
 }

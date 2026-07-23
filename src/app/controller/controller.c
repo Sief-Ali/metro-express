@@ -14,16 +14,19 @@
 #include "timer_service.h"
 #include "ui.h"
 
+/* Controller context shared by state handlers during one update pass. */
 static volatile controller_state_t last_state;
 static volatile controller_state_t *current_state_ptr = NULL;
 static volatile extint_flags_t *extint_flags_ptr = NULL;
 
+/* Clears all pending button flags after a transition consumes them. */
 static void clear_flags(void){
   extint_flags_ptr->next_pressed = false;
   extint_flags_ptr->confirm_pressed = false;
   extint_flags_ptr->cancel_pressed = false;
 }
 
+/* Returns true once for a pending flag and clears it immediately. */
 static bool check_and_clear_flag(volatile bool *flag) {
     if (flag != NULL && *flag == true) {
         *flag = false; // Clear it immediately
@@ -32,16 +35,18 @@ static bool check_and_clear_flag(volatile bool *flag) {
     return false;
 }
 
-// timeout 
+// Inactivity timeout handling
 static volatile uint16_t inactivity_counter_ms = 0;
 #define INACTIVITY_TIMEOUT_MS 15000U // 15 Seconds for D1 = 1
 
 // Timer Callback (Runs in ISR context every 100ms)
+/* Timer callback that accumulates inactivity time in 100 ms steps. */
 static void OnInactivityTick(void) {
     inactivity_counter_ms += 100U;
 }
 
 // Helper to start or reset timer on user activity
+/* Restarts the inactivity counter after user activity. */
 void Controller_ResetInactivityTimer(void) {
     inactivity_counter_ms = 0;
     // Arm Timer 1 to fire every 100ms
@@ -49,13 +54,13 @@ void Controller_ResetInactivityTimer(void) {
 }
 
 // Helper to stop timer when entering IDLE
+/* Stops the inactivity timer when the flow no longer needs it. */
 void Controller_StopInactivityTimer(void) {
     TIMER_SERVICE_Cancel(TIMER_1);
     inactivity_counter_ms = 0;
 }
 
-// cancel handler
-
+/* Handles a consumed cancel request by resetting the active transaction. */
 static void Cancel(bool cancel) {
   if (cancel) {
       Passenger_Reset();
@@ -66,7 +71,7 @@ static void Cancel(bool cancel) {
       
       Logger_Log(
         LOG_INFO,
-        "[0x00]:Cancel back to Idel");
+        "[0x00]:Cancel back to Idle");
 
       UI_SetPage(UI_PAGE_CANCELLED);
 
@@ -75,8 +80,11 @@ static void Cancel(bool cancel) {
   }
 }
 
-//state handlers
+/* -------------------------------------------------------------------------- */
+/* State Handlers                                                              */
+/* -------------------------------------------------------------------------- */
 
+/* Waits for the first button press and starts destination selection. */
 static void Idle_State(void) {
   if (extint_flags_ptr != NULL) {
       bool next = check_and_clear_flag(&extint_flags_ptr->next_pressed);
@@ -99,6 +107,7 @@ static void Idle_State(void) {
   }
 }
 
+/* Handles destination cycling, confirmation, and cancellation. */
 static void Select_Destination_State(void) {
   if (extint_flags_ptr != NULL) {
       bool next = check_and_clear_flag(&extint_flags_ptr->next_pressed);
@@ -130,6 +139,7 @@ static void Select_Destination_State(void) {
   }
 }
 
+/* Tracks the dial quantity and validates it before confirmation. */
 static void Select_Quantity_State(void) {
   if (extint_flags_ptr != NULL) {
       bool next = check_and_clear_flag(&extint_flags_ptr->next_pressed);
@@ -179,6 +189,7 @@ static void Select_Quantity_State(void) {
   }
 }
 
+/* Waits for final confirmation before ticket processing begins. */
 static void Confirmation_State(void) {
   if (extint_flags_ptr != NULL) {
       bool next = check_and_clear_flag(&extint_flags_ptr->next_pressed);
@@ -204,6 +215,7 @@ static void Confirmation_State(void) {
   }
 }
 
+/* Commits stock, emits the ticket code, and moves to the result state. */
 static void Processing_State(void) {
   // When progress/timer finishes:
   if (Passenger_CommitPurchase()) {
@@ -231,6 +243,7 @@ static void Processing_State(void) {
   }
 }
 
+/* Leaves the issued-ticket page after any button press. */
 static void Ticket_Issued_State(void) {
   if (extint_flags_ptr != NULL) {
       bool next = check_and_clear_flag(&extint_flags_ptr->next_pressed);
@@ -252,7 +265,10 @@ static void Ticket_Issued_State(void) {
   }
 }
 
-// main controls
+/* -------------------------------------------------------------------------- */
+/* Public Controller Controls                                                  */
+/* -------------------------------------------------------------------------- */
+/* Dispatches one controller state to its matching handler. */
 void Controller_SetState(controller_state_t current_state) {
   switch (current_state) {
     case STATE_IDLE:
@@ -280,6 +296,7 @@ void Controller_SetState(controller_state_t current_state) {
   }
 }
 
+/* Stores the state pointer and initializes the controller in idle. */
 void Controller_Init(volatile controller_state_t * current_state) {
   current_state_ptr = current_state;
 
@@ -289,6 +306,7 @@ void Controller_Init(volatile controller_state_t * current_state) {
   Controller_SetState(STATE_IDLE);
 }
 
+/* Processes timeout logic and runs the active state handler once. */
 void Controller_Update(volatile controller_state_t * current_state, volatile extint_flags_t *flags) {
   current_state_ptr = current_state;
   extint_flags_ptr = flags;
@@ -302,6 +320,5 @@ void Controller_Update(volatile controller_state_t * current_state, volatile ext
       *current_state_ptr = STATE_IDLE;
   }
 
-  // Excellent fix here! Evaluating the actual active state value.
   Controller_SetState(*current_state);
 }

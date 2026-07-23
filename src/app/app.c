@@ -12,22 +12,28 @@
 #include "ui.h"
 #include "logger.h"
 
+/* Global state shared by the main loop and controller state machine. */
 volatile controller_state_t current_state = STATE_IDLE;
 
+/* Button interrupt flags are set in ISRs and consumed in the main loop. */
 volatile extint_flags_t extint_flags = {false}; 
 
+/* Records a NEXT press from the button interrupt callback. */
 static void OnNextBTNEdge(void) {
   extint_flags.next_pressed = true;
 }
 
+/* Records a CONFIRM press from the button interrupt callback. */
 static void OnConfirmBTNEdge(void) {
   extint_flags.confirm_pressed = true;
 }
 
+/* Records a CANCEL press from the button interrupt callback. */
 static void OnCancelBTNEdge(void) {
   extint_flags.cancel_pressed = true;
 }
 
+/* Initializes passenger data, UI, button interrupts, and the controller. */
 void APP_Init(void)
 {
 
@@ -60,6 +66,7 @@ void APP_Init(void)
 
 }
 
+/* Runs the foreground loop: redraw UI, then process controller behavior. */
 void APP_Run(void)
 {
     while (1)

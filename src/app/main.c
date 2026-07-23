@@ -10,6 +10,7 @@
 #include "twi.h"
 
 
+/* Board LEDs initialized before the application modules start. */
 static led_t * const board_led_list[] = {
     &led.ready,
     &led.processing,
@@ -17,12 +18,14 @@ static led_t * const board_led_list[] = {
     &led.error
 };
 
+/* Board buttons initialized before interrupt callbacks are attached. */
 static btn_t * const board_btn_list[] = {
     &btn.next,
     &btn.confirm,
     &btn.cancel
 };
 
+/* Brings up board peripherals, then hands control to the application loop. */
 int main(void) {
 
   int led_length = sizeof(board_led_list) / sizeof(board_led_list[0]);

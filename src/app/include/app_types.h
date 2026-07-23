@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 
+/* Input flags written by interrupt callbacks and read by the controller. */
 typedef struct
 {
     volatile bool next_pressed;
