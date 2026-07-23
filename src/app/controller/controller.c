@@ -21,6 +21,14 @@ static volatile controller_state_t last_state;
 static volatile controller_state_t *current_state_ptr = NULL;
 static volatile extint_flags_t *extint_flags_ptr = NULL;
 
+/* Shared global message buffer used across logger entries */
+static char g_log_msg[64];
+
+/* Helper to safely clear the global message buffer before usage */
+static inline void ClearGlobalLogMsg(void) {
+    g_log_msg[0] = '\0';
+}
+
 /* Clears all pending button flags after a transition consumes them. */
 static void clear_flags(void){
   extint_flags_ptr->next_pressed = false;
@@ -70,11 +78,12 @@ static void Handle_Timeout(void) {
   *current_state_ptr = STATE_IDLE;
 
   // Timeout log: "timeout from=STATE_SELECT_DESTINATION next=STATE_IDLE"
-  char timeout_msg[48] = "timeout from=";
-  Str_Cat(timeout_msg, controller_state_names[last_state], sizeof(timeout_msg));
-  Str_Cat(timeout_msg, " next=STATE_IDLE", sizeof(timeout_msg));
+  ClearGlobalLogMsg();
+  Str_Cat(g_log_msg, "timeout from=", sizeof(g_log_msg));
+  Str_Cat(g_log_msg, controller_state_names[last_state], sizeof(g_log_msg));
+  Str_Cat(g_log_msg, " next=STATE_IDLE", sizeof(g_log_msg));
 
-  Logger_Log(LOG_EVENT, timeout_msg);
+  Logger_Log(LOG_EVENT, g_log_msg);
 
   UI_SetPage(UI_PAGE_IDLE);
   clear_flags();
@@ -90,10 +99,11 @@ static void Cancel(bool cancel) {
       *current_state_ptr = STATE_IDLE;
 
       // Cancel log: "Cancel from=STATE_SELECT_QUANTITY"
-      char cancel_msg[32] = "Cancel from=";
-      Str_Cat(cancel_msg, controller_state_names[last_state], sizeof(cancel_msg));
+      ClearGlobalLogMsg();
+      Str_Cat(g_log_msg, "Cancel from=", sizeof(g_log_msg));
+      Str_Cat(g_log_msg, controller_state_names[last_state], sizeof(g_log_msg));
 
-      Logger_Log(LOG_EVENT, cancel_msg);
+      Logger_Log(LOG_EVENT, g_log_msg);
 
       UI_SetPage(UI_PAGE_CANCELLED);
       clear_flags();
@@ -139,12 +149,12 @@ static void Select_Destination_State(void) {
 
           const char *dest = Passenger_GetSelectedDestinationName();
 
-          char message[32] = "choose_destination";
+          ClearGlobalLogMsg();
+          Str_Cat(g_log_msg, "choose_destination", sizeof(g_log_msg));
+          // Dynamically appends " dest=<CurrentDestination>"
+          Str_CatKV(g_log_msg, "dest", dest, sizeof(g_log_msg));
 
-          // Dynamically appends " dest=<CurrentDestination>" (e.g. "choose_destination dest=Cairo")
-          Str_CatKV(message, "dest", dest, sizeof(message));
-
-          Logger_Log(LOG_EVENT, message);
+          Logger_Log(LOG_EVENT, g_log_msg);
       }
 
       if (confirm) {
@@ -181,13 +191,14 @@ static void Select_Quantity_State(void) {
       if (next || confirm) {
           Controller_ResetInactivityTimer(); // Resets timer back to 0ms
           if (current_qty <= 0U) {
-              char message[32] = "[ERR] code=E01 msg=invalid_qty";
+              ClearGlobalLogMsg();
+              Str_Cat(g_log_msg, "[ERR] code=E01 msg=invalid_qty", sizeof(g_log_msg));
 
               const char* qty = Str_U8(Passenger_GetQuantity());
         
-              Str_CatKV(message, "value", qty, sizeof(message));
+              Str_CatKV(g_log_msg, "value", qty, sizeof(g_log_msg));
         
-              Logger_Log(LOG_EVENT, message);
+              Logger_Log(LOG_EVENT, g_log_msg);
 
               UI_SetPage(UI_PAGE_QUANTITY_NOT_VALID);
 
@@ -199,7 +210,6 @@ static void Select_Quantity_State(void) {
           *current_state_ptr = STATE_CONFIRMATION;
 
           UI_Update_Summarize();
-
 
           Passenger_SetQuantity(current_qty);
 
@@ -242,15 +252,16 @@ static void Processing_State(void) {
       //for testing only simulate ticket printing process
       for (volatile uint32_t i=0;i<40000;i++);;
 
-      char message[48] = "purchase";
+      ClearGlobalLogMsg();
+      Str_Cat(g_log_msg, "purchase", sizeof(g_log_msg));
 
       // Build: "purchase dest=Tanta qty=2 code=TAN0007#2"
-      Str_CatKV(message, "dest", Passenger_GetSelectedDestinationName(), sizeof(message));
-      Str_CatKVNum(message, "qty", Passenger_GetQuantity(), sizeof(message));
-      Str_CatKV(message, "code", Passenger_GetTicketCode(), sizeof(message));
+      Str_CatKV(g_log_msg, "dest", Passenger_GetSelectedDestinationName(), sizeof(g_log_msg));
+      Str_CatKVNum(g_log_msg, "qty", Passenger_GetQuantity(), sizeof(g_log_msg));
+      Str_CatKV(g_log_msg, "code", Passenger_GetTicketCode(), sizeof(g_log_msg));
   
       // Pass directly to logger
-      Logger_Log(LOG_EVENT, message);
+      Logger_Log(LOG_EVENT, g_log_msg);
 
       Controller_ResetInactivityTimer();
 
@@ -258,9 +269,10 @@ static void Processing_State(void) {
       
   } else {
 
-      char message[32] = "[ERR] code=E02 msg=out_of_stock";
+      ClearGlobalLogMsg();
+      Str_Cat(g_log_msg, "[ERR] code=E02 msg=out_of_stock", sizeof(g_log_msg));
 
-      Logger_Log(LOG_EVENT, message);
+      Logger_Log(LOG_EVENT, g_log_msg);
 
       // Trigger Out-of-Stock Error E02
       UI_SetPage(UI_PAGE_OUT_OF_STOCK);
